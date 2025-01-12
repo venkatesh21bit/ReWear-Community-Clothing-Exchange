@@ -247,16 +247,12 @@ export default function AddItemPage() {
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                     <SelectContent className="bg-black/90 border-white/10">
-                      <SelectItem value="tops" className="text-white hover:bg-emerald-500/20">Tops</SelectItem>
-                      <SelectItem value="bottoms" className="text-white hover:bg-emerald-500/20">Bottoms</SelectItem>
-                      <SelectItem value="dresses" className="text-white hover:bg-emerald-500/20">Dresses</SelectItem>
-                      <SelectItem value="outerwear" className="text-white hover:bg-emerald-500/20">Outerwear</SelectItem>
-                      <SelectItem value="shoes" className="text-white hover:bg-emerald-500/20">Shoes</SelectItem>
-                      <SelectItem value="accessories" className="text-white hover:bg-emerald-500/20">Accessories</SelectItem>
-                      <SelectItem value="activewear" className="text-white hover:bg-emerald-500/20">Activewear</SelectItem>
-                      <SelectItem value="formal" className="text-white hover:bg-emerald-500/20">Formal Wear</SelectItem>
-                      <SelectItem value="casual" className="text-white hover:bg-emerald-500/20">Casual Wear</SelectItem>
-                      <SelectItem value="other" className="text-white hover:bg-emerald-500/20">Other</SelectItem>
+                      <SelectItem value="Tops" className="text-white hover:bg-emerald-500/20">Tops</SelectItem>
+                      <SelectItem value="Bottoms" className="text-white hover:bg-emerald-500/20">Bottoms</SelectItem>
+                      <SelectItem value="Dresses" className="text-white hover:bg-emerald-500/20">Dresses</SelectItem>
+                      <SelectItem value="Outerwear" className="text-white hover:bg-emerald-500/20">Outerwear</SelectItem>
+                      <SelectItem value="Shoes" className="text-white hover:bg-emerald-500/20">Shoes</SelectItem>
+                      <SelectItem value="Accessories" className="text-white hover:bg-emerald-500/20">Accessories</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -284,37 +280,16 @@ export default function AddItemPage() {
               <CardDescription className="text-white/70">Provide specific information about your item</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="size" className="text-white">Size</Label>
-                  <Select value={formData.size} onValueChange={(value) => handleInputChange("size", value)}>
-                    <SelectTrigger className="bg-white/10 border-white/20 text-white">
-                      <SelectValue placeholder="Select size" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-black/90 border-white/10">
-                      <SelectItem value="xs" className="text-white hover:bg-emerald-500/20">XS</SelectItem>
-                      <SelectItem value="s" className="text-white hover:bg-emerald-500/20">S</SelectItem>
-                      <SelectItem value="m" className="text-white hover:bg-emerald-500/20">M</SelectItem>
-                      <SelectItem value="l" className="text-white hover:bg-emerald-500/20">L</SelectItem>
-                      <SelectItem value="xl" className="text-white hover:bg-emerald-500/20">XL</SelectItem>
-                      <SelectItem value="xxl" className="text-white hover:bg-emerald-500/20">XXL</SelectItem>
-                      <SelectItem value="one_size" className="text-white hover:bg-emerald-500/20">One Size</SelectItem>
-                      <SelectItem value="custom" className="text-white hover:bg-emerald-500/20">Custom Size</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="type" className="text-white">Type</Label>
-                  <Select value={formData.type} onValueChange={(value) => handleInputChange("type", value)}>
-                    <SelectTrigger className="bg-white/10 border-white/20 text-white">
-                      <SelectValue placeholder="Select type" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-black/90 border-white/10">
-                      <SelectItem value="swap" className="text-white hover:bg-emerald-500/20">Available for Swap</SelectItem>
-                      <SelectItem value="donation" className="text-white hover:bg-emerald-500/20">Donation</SelectItem>
-                      <SelectItem value="points" className="text-white hover:bg-emerald-500/20">Points Exchange</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Input
+                    id="size"
+                    placeholder="e.g., M, L, 32, 8"
+                    value={formData.size}
+                    onChange={(e) => handleInputChange("size", e.target.value)}
+                    className="bg-white/10 border-white/20 text-white placeholder-white/50 focus:border-emerald-300"
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="condition" className="text-white">Condition *</Label>
@@ -323,11 +298,12 @@ export default function AddItemPage() {
                       <SelectValue placeholder="Select condition" />
                     </SelectTrigger>
                     <SelectContent className="bg-black/90 border-white/10">
-                      <SelectItem value="new" className="text-white hover:bg-emerald-500/20">New with tags</SelectItem>
-                      <SelectItem value="excellent" className="text-white hover:bg-emerald-500/20">Excellent</SelectItem>
-                      <SelectItem value="good" className="text-white hover:bg-emerald-500/20">Good</SelectItem>
-                      <SelectItem value="fair" className="text-white hover:bg-emerald-500/20">Fair</SelectItem>
-                      <SelectItem value="worn" className="text-white hover:bg-emerald-500/20">Well Worn</SelectItem>
+                      <SelectItem value="New with tags" className="text-white hover:bg-emerald-500/20">New with tags</SelectItem>
+                      <SelectItem value="Like new" className="text-white hover:bg-emerald-500/20">Like new</SelectItem>
+                      <SelectItem value="Excellent" className="text-white hover:bg-emerald-500/20">Excellent</SelectItem>
+                      <SelectItem value="Very good" className="text-white hover:bg-emerald-500/20">Very good</SelectItem>
+                      <SelectItem value="Good" className="text-white hover:bg-emerald-500/20">Good</SelectItem>
+                      <SelectItem value="Fair" className="text-white hover:bg-emerald-500/20">Fair</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
