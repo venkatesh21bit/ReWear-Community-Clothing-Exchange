@@ -29,4 +29,12 @@ urlpatterns = [
     
     # Image upload endpoint
     path('upload/images/', views.ImageUploadView.as_view(), name='image_upload'),
+    
+    # Debug and Health Check endpoints (for deployment debugging)
+    path('health/', views.health_check, name='health_check'),
+    path('health/database/', views.database_health, name='database_health'),
+    path('health/auth/', views.auth_health, name='auth_health'),
+    path('debug/items/', views.debug_items, name='debug_items'),
+    path('debug/validate/', views.validate_item_data, name='validate_item_data'),
+    path('test/', views.simple_test, name='simple_test'),
 ]

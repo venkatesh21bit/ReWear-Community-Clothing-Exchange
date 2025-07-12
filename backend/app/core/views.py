@@ -273,19 +273,78 @@ class ItemListCreateView(APIView):
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     def post(self, request):
-        serializer = ItemCreateSerializer(data=request.data)
-        if serializer.is_valid():
-            item = serializer.save(uploader=request.user)
+        try:
+            # Log incoming request for debugging
+            import traceback
+            
+            print(f"POST /api/items/ - User: {request.user}")
+            print(f"Request data: {request.data}")
+            print(f"Content type: {request.content_type}")
+            
+            # Check if user is properly authenticated
+            if not request.user or not request.user.is_authenticated:
+                return Response({
+                    'success': False,
+                    'message': 'Authentication required',
+                    'error': 'User not authenticated'
+                }, status=status.HTTP_401_UNAUTHORIZED)
+            
+            # Validate serializer
+            serializer = ItemCreateSerializer(data=request.data)
+            if serializer.is_valid():
+                try:
+                    # Attempt to save the item
+                    item = serializer.save(uploader=request.user)
+                    print(f"Item created successfully: {item.item_id}")
+                    
+                    return Response({
+                        'success': True,
+                        'message': 'Item listed successfully',
+                        'item': ItemDetailSerializer(item, context={'request': request}).data
+                    }, status=status.HTTP_201_CREATED)
+                    
+                except Exception as save_error:
+                    # Log save error details
+                    error_details = {
+                        'error': str(save_error),
+                        'traceback': traceback.format_exc(),
+                        'user_id': request.user.user_id,
+                        'validated_data': serializer.validated_data
+                    }
+                    print(f"Error saving item: {error_details}")
+                    
+                    return Response({
+                        'success': False,
+                        'message': 'Failed to save item to database',
+                        'error': str(save_error),
+                        'debug_info': error_details if settings.DEBUG else None
+                    }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            else:
+                # Log validation errors
+                print(f"Validation errors: {serializer.errors}")
+                return Response({
+                    'success': False,
+                    'message': 'Failed to create item',
+                    'errors': serializer.errors
+                }, status=status.HTTP_400_BAD_REQUEST)
+                
+        except Exception as e:
+            # Log any unexpected errors
+            import traceback
+            error_details = {
+                'error': str(e),
+                'traceback': traceback.format_exc(),
+                'user_id': request.user.user_id if hasattr(request.user, 'user_id') else None,
+                'request_data': request.data
+            }
+            print(f"Unexpected error in ItemListCreateView.post: {error_details}")
+            
             return Response({
-                'success': True,
-                'message': 'Item listed successfully',
-                'item': ItemDetailSerializer(item, context={'request': request}).data
-            }, status=status.HTTP_201_CREATED)
-        return Response({
-            'success': False,
-            'message': 'Failed to create item',
-            'errors': serializer.errors
-        }, status=status.HTTP_400_BAD_REQUEST)
+                'success': False,
+                'message': 'Internal server error occurred',
+                'error': str(e),
+                'debug_info': error_details if settings.DEBUG else None
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class ItemDetailView(APIView):
@@ -697,6 +756,167 @@ class ImageUploadView(APIView):
 
 
 # ===============================
+# Debug and Health Check Views
+# ===============================
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def health_check(request):
+    """
+    Basic health check endpoint to verify server is running
+    """
+    try:
+        return Response({
+            'status': 'healthy',
+            'timestamp': datetime.datetime.now().isoformat(),
+            'django_version': settings.DJANGO_VERSION if hasattr(settings, 'DJANGO_VERSION') else 'unknown',
+            'debug_mode': settings.DEBUG,
+            'database_connected': True  # If we reach here, DB is working
+        }, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({
+            'status': 'unhealthy',
+            'error': str(e),
+            'timestamp': datetime.datetime.now().isoformat()
+        }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def database_health(request):
+    """
+    Check database connectivity and basic model access
+    """
+    try:
+        from django.db import connection
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+            
+        # Test basic model access
+        user_count = User.objects.count()
+        item_count = Item.objects.count()
+        
+        return Response({
+            'status': 'healthy',
+            'database_connected': True,
+            'user_count': user_count,
+            'item_count': item_count,
+            'timestamp': datetime.datetime.now().isoformat()
+        }, status=status.HTTP_200_OK)
+    except Exception as e:
+        import traceback
+        return Response({
+            'status': 'unhealthy',
+            'database_connected': False,
+            'error': str(e),
+            'traceback': traceback.format_exc(),
+            'timestamp': datetime.datetime.now().isoformat()
+        }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def auth_health(request):
+    """
+    Check authentication system
+    """
+    try:
+        return Response({
+            'status': 'healthy',
+            'authenticated': True,
+            'user_id': str(request.user.user_id),
+            'user_email': request.user.email,
+            'timestamp': datetime.datetime.now().isoformat()
+        }, status=status.HTTP_200_OK)
+    except Exception as e:
+        import traceback
+        return Response({
+            'status': 'unhealthy',
+            'authenticated': False,
+            'error': str(e),
+            'traceback': traceback.format_exc(),
+            'timestamp': datetime.datetime.now().isoformat()
+        }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
+
+@api_view(['GET', 'POST'])
+@permission_classes([AllowAny])
+def debug_items(request):
+    """
+    Debug endpoint for items creation issues
+    """
+    try:
+        if request.method == 'GET':
+            # Test GET functionality
+            items = Item.objects.all()[:5]  # Get first 5 items
+            serializer = ItemListSerializer(items, many=True, context={'request': request})
+            
+            return Response({
+                'status': 'success',
+                'method': 'GET',
+                'total_items': Item.objects.count(),
+                'sample_items': serializer.data,
+                'timestamp': datetime.datetime.now().isoformat()
+            }, status=status.HTTP_200_OK)
+            
+        elif request.method == 'POST':
+            # Test POST functionality with debug info
+            try:
+                # Log the incoming data
+                debug_info = {
+                    'raw_data': request.data,
+                    'content_type': request.content_type,
+                    'user_authenticated': request.user.is_authenticated,
+                    'user_id': str(request.user.user_id) if request.user.is_authenticated else None,
+                    'headers': dict(request.headers),
+                }
+                
+                # Test serializer validation
+                serializer = ItemCreateSerializer(data=request.data)
+                if serializer.is_valid():
+                    # Test item creation (but don't actually save in debug mode)
+                    validated_data = serializer.validated_data
+                    
+                    return Response({
+                        'status': 'success',
+                        'method': 'POST',
+                        'message': 'Validation successful',
+                        'validated_data': validated_data,
+                        'debug_info': debug_info,
+                        'timestamp': datetime.datetime.now().isoformat()
+                    }, status=status.HTTP_200_OK)
+                else:
+                    return Response({
+                        'status': 'validation_error',
+                        'method': 'POST',
+                        'message': 'Validation failed',
+                        'errors': serializer.errors,
+                        'debug_info': debug_info,
+                        'timestamp': datetime.datetime.now().isoformat()
+                    }, status=status.HTTP_400_BAD_REQUEST)
+                    
+            except Exception as e:
+                import traceback
+                return Response({
+                    'status': 'error',
+                    'method': 'POST',
+                    'error': str(e),
+                    'traceback': traceback.format_exc(),
+                    'debug_info': debug_info if 'debug_info' in locals() else 'Not available',
+                    'timestamp': datetime.datetime.now().isoformat()
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                
+    except Exception as e:
+        import traceback
+        return Response({
+            'status': 'critical_error',
+            'error': str(e),
+            'traceback': traceback.format_exc(),
+            'timestamp': datetime.datetime.now().isoformat()
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# ===============================
 # Debug View (Temporary)
 # ===============================
 
@@ -754,3 +974,92 @@ class ItemDebugView(APIView):
                 'debug_error': str(e),
                 'traceback': traceback.format_exc()
             }, status=500)
+
+
+# ===============================
+# Item Data Validation Debug Endpoint
+# ===============================
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def validate_item_data(request):
+    """
+    Test endpoint to validate item creation data without actually saving
+    """
+    try:
+        # Test data structure
+        required_fields = ['title', 'description', 'category', 'size', 'condition']
+        optional_fields = ['type', 'brand', 'color', 'points_value', 'tags', 'images']
+        
+        data = request.data
+        validation_results = {
+            'provided_fields': list(data.keys()),
+            'required_fields': required_fields,
+            'optional_fields': optional_fields,
+            'missing_required': [],
+            'field_validation': {}
+        }
+        
+        # Check required fields
+        for field in required_fields:
+            if field not in data or not data[field]:
+                validation_results['missing_required'].append(field)
+        
+        # Validate choice fields
+        from .models import Item
+        choice_validations = {
+            'category': Item.ITEM_CATEGORIES,
+            'type': Item.ITEM_TYPES,
+            'size': Item.ITEM_SIZES,
+            'condition': Item.ITEM_CONDITIONS
+        }
+        
+        for field, choices in choice_validations.items():
+            if field in data:
+                valid_choices = [choice[0] for choice in choices]
+                is_valid = data[field] in valid_choices
+                validation_results['field_validation'][field] = {
+                    'value': data[field],
+                    'valid': is_valid,
+                    'valid_choices': valid_choices
+                }
+        
+        # Test serializer
+        serializer = ItemCreateSerializer(data=data)
+        serializer_valid = serializer.is_valid()
+        
+        return Response({
+            'status': 'success',
+            'serializer_valid': serializer_valid,
+            'serializer_errors': serializer.errors if not serializer_valid else None,
+            'validation_results': validation_results,
+            'timestamp': datetime.datetime.now().isoformat()
+        }, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+        import traceback
+        return Response({
+            'status': 'error',
+            'error': str(e),
+            'traceback': traceback.format_exc(),
+            'timestamp': datetime.datetime.now().isoformat()
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def simple_test(request):
+    """
+    Simple test endpoint that doesn't require database or complex operations
+    """
+    return Response({
+        'status': 'success',
+        'message': 'Simple test endpoint working',
+        'server_time': datetime.datetime.now().isoformat(),
+        'django_settings': {
+            'debug': settings.DEBUG,
+            'secret_key_configured': bool(settings.SECRET_KEY),
+            'database_configured': bool(settings.DATABASES),
+            'allowed_hosts': settings.ALLOWED_HOSTS
+        }
+    }, status=status.HTTP_200_OK)
