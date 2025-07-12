@@ -89,13 +89,11 @@ export default function LandingPage() {
                 <Award className="w-4 h-4 text-emerald-400 group-hover:animate-spin" />
                 <span className="text-sm font-medium text-emerald-300">Welcome Back, Eco Warrior!</span>
                 <Sparkles className="w-4 h-4 text-yellow-400 group-hover:animate-bounce" />
-              </div>
-
-              <h1 className="text-6xl md:text-8xl font-black mb-8 leading-none">
-                <span className="text-white">Hello,</span>
+              </div>              <h1 className="text-6xl md:text-8xl font-black mb-8 leading-none">
+                <span className="text-white">Hello</span>
                 <br />
                 <span className="bg-gradient-to-r from-emerald-400 via-purple-400 to-blue-400 bg-clip-text text-transparent animate-pulse">
-                  {user?.first_name}!
+                  {user?.first_name || user?.email?.split('@')[0] || 'User'}!
                 </span>
               </h1>
 
