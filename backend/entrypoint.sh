@@ -1,9 +1,10 @@
 #!/bin/bash
 set -e  # Exit on any error
-echo "🚀 RAILWAY DEPLOYMENT: Running Django migrations and starting server..."
+echo "🚀 RAILWAY DEPLOYMENT: Starting Django application..."
 
-echo "Installing Python dependencies..."
-pip install -r requirements.txt
+echo "Checking Python environment..."
+python --version
+pip --version
 
 echo "Running database migrations..."
 python manage.py migrate --noinput
@@ -21,10 +22,10 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 if not User.objects.filter(is_superuser=True).exists():
     User.objects.create_superuser('admin', 'admin@rewear.com', 'admin123')
-    print('Superuser created')
+    print('✅ Superuser created')
 else:
-    print('Superuser already exists')
+    print('ℹ️ Superuser already exists')
 "
 
-echo "Starting gunicorn server..."
-exec gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
+echo "🚀 Starting gunicorn server..."
+exec gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 60
