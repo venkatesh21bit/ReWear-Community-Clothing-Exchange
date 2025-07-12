@@ -28,7 +28,7 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-1l^weu7!$y&!!(d5m9!**
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,*.railway.app').split(',')
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,*.railway.app,rewear-community-clothing-exchange-production.up.railway.app').split(',')
 
 
 # Application definition
@@ -140,8 +140,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'static'
 
 # Media files
 MEDIA_URL = '/media/'
@@ -167,10 +167,17 @@ REST_FRAMEWORK = {
 # CORS settings
 CORS_ALLOWED_ORIGINS = config(
     'CORS_ALLOWED_ORIGINS', 
-    default='http://localhost:3000,http://127.0.0.1:3000'
+    default='http://localhost:3000,http://127.0.0.1:3000,https://rewear-community-clothing-exchange-production.up.railway.app'
 ).split(',')
 
 CORS_ALLOW_CREDENTIALS = True
+
+# CSRF settings
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'https://rewear-community-clothing-exchange-production.up.railway.app',
+]
 
 # Additional CORS settings for development
 if DEBUG:
@@ -187,6 +194,12 @@ if os.environ.get('RAILWAY_ENVIRONMENT'):
     
     # Update CORS origins for production
     CORS_ALLOWED_ORIGINS = [
-        'https://your-frontend-domain.railway.app',  # Update with your actual frontend URL
+        'https://rewear-community-clothing-exchange-production.up.railway.app',
         'http://localhost:3000',  # Keep for local development
+    ]
+    
+    # Update CSRF trusted origins for production
+    CSRF_TRUSTED_ORIGINS = [
+        'https://rewear-community-clothing-exchange-production.up.railway.app',
+        'http://localhost:3000',
     ]
