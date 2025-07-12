@@ -21,8 +21,8 @@ from django.conf.urls.static import static
 from django.http import HttpResponseRedirect
 
 def root_redirect(request):
-    """Redirect root URL to API endpoint"""
-    return HttpResponseRedirect('/api/')
+    """Redirect root URL to Django Admin"""
+    return HttpResponseRedirect('/admin/')
 
 urlpatterns = [
     path('', root_redirect, name='root'),

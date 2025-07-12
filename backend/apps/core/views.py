@@ -15,8 +15,13 @@ def api_root(request):
         'version': '1.0',
         'timestamp': datetime.datetime.now().isoformat(),
         'endpoints': {
-            'admin': '/admin/',
-            'api': '/api/',
+            'admin': '/admin/ (Main Dashboard - Login required)',
+            'api': '/api/ (API Endpoints)',
+        },
+        'admin_credentials': {
+            'username': 'admin',
+            'password': 'admin123',
+            'note': 'Default admin credentials for demo'
         },
         'status': 'operational'
     }, status=status.HTTP_200_OK)
