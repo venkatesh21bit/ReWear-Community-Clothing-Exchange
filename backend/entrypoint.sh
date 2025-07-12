@@ -15,7 +15,7 @@ echo "Creating superuser (if not exists)..."
 python -c "
 import os
 import django
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'main.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
 from django.contrib.auth import get_user_model
 User = get_user_model()
@@ -27,4 +27,4 @@ else:
 "
 
 echo "Starting gunicorn server..."
-exec gunicorn main.wsgi:application --bind 0.0.0.0:$PORT
+exec gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
