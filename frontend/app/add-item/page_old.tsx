@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+
 import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
@@ -141,9 +142,6 @@ export default function AddItemPage() {
       setIsSubmitting(false)
     }
   }
-
-  const handleInputChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
   return (
@@ -189,7 +187,7 @@ export default function AddItemPage() {
                 {imagePreviewUrls.map((imageUrl, index) => (
                   <div key={index} className="relative group">
                     <Image
-                      src={imageUrl}
+                      src={imageUrl || "/placeholder.svg"}
                       alt={`Upload ${index + 1}`}
                       width={200}
                       height={200}
@@ -225,91 +223,108 @@ export default function AddItemPage() {
               <CardDescription>Tell us about your item</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="title">Title *</Label>
-                  <Input
-                    id="title"
-                    placeholder="e.g., Vintage Denim Jacket"
-                    value={formData.title}
-                    onChange={(e) => handleInputChange("title", e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="category">Category *</Label>
-                  <Select value={formData.category} onValueChange={(value) => handleInputChange("category", value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Tops">Tops</SelectItem>
-                      <SelectItem value="Bottoms">Bottoms</SelectItem>
-                      <SelectItem value="Dresses">Dresses</SelectItem>
-                      <SelectItem value="Outerwear">Outerwear</SelectItem>
-                      <SelectItem value="Shoes">Shoes</SelectItem>
-                      <SelectItem value="Accessories">Accessories</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="title">Title *</Label>
+                <Input
+                  id="title"
+                  placeholder="e.g., Vintage Denim Jacket"
+                  value={formData.title}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
+                  required
+                />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="description">Description *</Label>
                 <Textarea
                   id="description"
-                  placeholder="Describe your item in detail. Include material, style, fit, and any notable features..."
+                  placeholder="Describe your item's condition, style, and any special features..."
                   rows={4}
                   value={formData.description}
-                  onChange={(e) => handleInputChange("description", e.target.value)}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
                   required
                 />
               </div>
-            </CardContent>
-          </Card>
 
-          {/* Item Details */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Item Details</CardTitle>
-              <CardDescription>Provide specific information about your item</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="size">Size</Label>
+                  <Label htmlFor="category">Category *</Label>
+                  <Select
+                    value={formData.category}
+                    onValueChange={(value) => setFormData((prev) => ({ ...prev, category: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="tops">Tops & T-Shirts</SelectItem>
+                      <SelectItem value="bottoms">Bottoms</SelectItem>
+                      <SelectItem value="dresses">Dresses</SelectItem>
+                      <SelectItem value="outerwear">Outerwear</SelectItem>
+                      <SelectItem value="shoes">Shoes</SelectItem>
+                      <SelectItem value="accessories">Accessories</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="type">Type</Label>
                   <Input
-                    id="size"
-                    placeholder="e.g., M, L, 32, 8"
-                    value={formData.size}
-                    onChange={(e) => handleInputChange("size", e.target.value)}
+                    id="type"
+                    placeholder="e.g., Jacket, Dress, Sneakers"
+                    value={formData.type}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, type: e.target.value }))}
                   />
                 </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="size">Size *</Label>
+                  <Select
+                    value={formData.size}
+                    onValueChange={(value) => setFormData((prev) => ({ ...prev, size: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select size" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="xs">XS</SelectItem>
+                      <SelectItem value="s">S</SelectItem>
+                      <SelectItem value="m">M</SelectItem>
+                      <SelectItem value="l">L</SelectItem>
+                      <SelectItem value="xl">XL</SelectItem>
+                      <SelectItem value="xxl">XXL</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="condition">Condition *</Label>
-                  <Select value={formData.condition} onValueChange={(value) => handleInputChange("condition", value)}>
+                  <Select
+                    value={formData.condition}
+                    onValueChange={(value) => setFormData((prev) => ({ ...prev, condition: value }))}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select condition" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="New with tags">New with tags</SelectItem>
-                      <SelectItem value="Like new">Like new</SelectItem>
-                      <SelectItem value="Excellent">Excellent</SelectItem>
-                      <SelectItem value="Very good">Very good</SelectItem>
-                      <SelectItem value="Good">Good</SelectItem>
-                      <SelectItem value="Fair">Fair</SelectItem>
+                      <SelectItem value="new">New with tags</SelectItem>
+                      <SelectItem value="like-new">Like new</SelectItem>
+                      <SelectItem value="excellent">Excellent</SelectItem>
+                      <SelectItem value="good">Good</SelectItem>
+                      <SelectItem value="fair">Fair</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="pointValue">Point Value *</Label>
+                  <Label htmlFor="color">Color</Label>
                   <Input
-                    id="pointValue"
-                    type="number"
-                    placeholder="e.g., 150"
-                    value={formData.pointValue}
-                    onChange={(e) => handleInputChange("pointValue", e.target.value)}
-                    required
+                    id="color"
+                    placeholder="e.g., Blue, Red, Black"
+                    value={formData.color}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, color: e.target.value }))}
                   />
                 </div>
               </div>
@@ -321,17 +336,22 @@ export default function AddItemPage() {
                     id="brand"
                     placeholder="e.g., Nike, Zara, H&M"
                     value={formData.brand}
-                    onChange={(e) => handleInputChange("brand", e.target.value)}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, brand: e.target.value }))}
                   />
                 </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="color">Color</Label>
+                  <Label htmlFor="pointValue">Suggested Point Value</Label>
                   <Input
-                    id="color"
-                    placeholder="e.g., Blue, Black, Red"
-                    value={formData.color}
-                    onChange={(e) => handleInputChange("color", e.target.value)}
+                    id="pointValue"
+                    type="number"
+                    placeholder="e.g., 150"
+                    value={formData.pointValue}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, pointValue: e.target.value }))}
                   />
+                  <p className="text-xs text-gray-500">
+                    Based on condition and brand. Our system will suggest the final value.
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -347,36 +367,39 @@ export default function AddItemPage() {
               <div className="space-y-4">
                 <div className="flex gap-2">
                   <Input
-                    placeholder="Add a tag (e.g., vintage, casual, summer)"
+                    placeholder="Add a tag..."
                     value={newTag}
                     onChange={(e) => setNewTag(e.target.value)}
                     onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addTag())}
                   />
-                  <Button type="button" onClick={addTag} disabled={!newTag.trim()}>
+                  <Button type="button" onClick={addTag} variant="outline">
                     <Plus className="w-4 h-4" />
                   </Button>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  {tags.map((tag) => (
-                    <Badge key={tag} variant="secondary" className="flex items-center gap-1">
-                      {tag}
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="h-auto p-0 w-4 h-4"
-                        onClick={() => removeTag(tag)}
-                      >
-                        <X className="w-3 h-3" />
-                      </Button>
-                    </Badge>
-                  ))}
-                </div>
+
+                {tags.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {tags.map((tag) => (
+                      <Badge key={tag} variant="secondary" className="flex items-center gap-1">
+                        {tag}
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="w-4 h-4 p-0 hover:bg-transparent"
+                          onClick={() => removeTag(tag)}
+                        >
+                          <X className="w-3 h-3" />
+                        </Button>
+                      </Badge>
+                    ))}
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
 
-          {/* Status Message */}
+          {/* Submission Status */}
           {submissionStatus && (
             <div
               className={`p-4 rounded-lg text-center ${
@@ -387,10 +410,13 @@ export default function AddItemPage() {
             </div>
           )}
 
-          {/* Submit Button */}
-          <div className="flex justify-center">
-            <Button type="submit" size="lg" disabled={isSubmitting} className="w-full md:w-auto">
-              {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+          {/* Submit */}
+          <div className="flex gap-4 justify-end">
+            <Button type="button" variant="outline" asChild disabled={isSubmitting}>
+              <Link href="/dashboard">Cancel</Link>
+            </Button>
+            <Button type="submit" className="bg-green-600 hover:bg-green-700" disabled={isSubmitting}>
+              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {isSubmitting ? "Submitting..." : "List Item for Review"}
             </Button>
           </div>

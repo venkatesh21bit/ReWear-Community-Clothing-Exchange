@@ -7,8 +7,21 @@ export async function loginUser(email: string, password: string) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password })
   });
-  if (!res.ok) throw new Error((await res.json()).detail || "Login failed");
-  return res.json();
+  
+  let json;
+  try {
+    json = await res.json();
+  } catch (e) {
+    throw new Error("Invalid server response");
+  }
+  
+  if (!res.ok) {
+    // Handle backend error response format
+    const errorMessage = json.message || json.detail || JSON.stringify(json.errors) || "Login failed";
+    throw new Error(errorMessage);
+  }
+  
+  return json;
 }
 
 export async function signupUser(data: { firstName: string; lastName: string; email: string; password: string; confirmPassword?: string }) {

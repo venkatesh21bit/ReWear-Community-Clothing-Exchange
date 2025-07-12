@@ -13,7 +13,6 @@ import { Recycle, Eye, EyeOff } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
-import { loginUser } from "@/lib/auth-api"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -32,10 +31,8 @@ export default function LoginPage() {
     console.log("Login attempt:", { email, password })
 
     try {
-      const user = await loginUser(email, password)
+      await login(email, password)
       setLoginStatus({ type: "success", message: "Login successful!" })
-
-      login(user) // Update auth context
 
       setTimeout(() => {
         router.push("/") // Redirect to home page to see logged-in state

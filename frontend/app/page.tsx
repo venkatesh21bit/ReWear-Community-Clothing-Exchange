@@ -8,12 +8,15 @@ import { Badge } from "@/components/ui/badge"
 import { Leaf, Recycle, Users, ArrowRight, Star, Heart, ChevronLeft, ChevronRight, Plus, Package, Sparkles, Zap, Globe, Award, TrendingUp, Shield } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
 import { useState, useEffect } from "react"
+import { itemsAPI, Item } from "@/lib/api"
 
 export default function LandingPage() {
   const { user, isLoggedIn } = useAuth()
   const [currentSlide, setCurrentSlide] = useState(0)
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
   const [hoveredCard, setHoveredCard] = useState<number | null>(null)
+  const [featuredItems, setFeaturedItems] = useState<Item[]>([])
+  const [isLoadingItems, setIsLoadingItems] = useState(true)
 
   // Mouse tracking for premium effects
   useEffect(() => {
@@ -24,75 +27,39 @@ export default function LandingPage() {
     return () => window.removeEventListener('mousemove', handleMouseMove)
   }, [])
 
-  const featuredItems = [
-    {
-      id: 1,
-      title: "Vintage Denim Jacket",
-      image: "/placeholder.svg?height=300&width=300",
-      condition: "Excellent",
-      points: 150,
-      usdPrice: 75,
-      category: "Outerwear",
-      likes: 24,
-    },
-    {
-      id: 2,
-      title: "Designer Summer Dress",
-      image: "/placeholder.svg?height=300&width=300",
-      condition: "Like New",
-      points: 200,
-      usdPrice: 100,
-      category: "Dresses",
-      likes: 18,
-    },
-    {
-      id: 3,
-      title: "Classic White Sneakers",
-      image: "/placeholder.svg?height=300&width=300",
-      condition: "Good",
-      points: 120,
-      usdPrice: 60,
-      category: "Shoes",
-      likes: 31,
-    },
-    {
-      id: 4,
-      title: "Wool Winter Coat",
-      image: "/placeholder.svg?height=300&width=300",
-      condition: "Very Good",
-      points: 180,
-      usdPrice: 90,
-      category: "Outerwear",
-      likes: 15,
-    },
-    {
-      id: 5,
-      title: "Silk Blouse",
-      image: "/placeholder.svg?height=300&width=300",
-      condition: "Excellent",
-      points: 130,
-      usdPrice: 65,
-      category: "Tops",
-      likes: 22,
-    },
-    {
-      id: 6,
-      title: "Leather Ankle Boots",
-      image: "/placeholder.svg?height=300&width=300",
-      condition: "Good",
-      points: 140,
-      usdPrice: 70,
-      category: "Shoes",
-      likes: 27,
-    },
-  ]
+  // Fetch featured items (using recent high-rated items as featured)
+  useEffect(() => {
+    const fetchFeaturedItems = async () => {
+      try {
+        setIsLoadingItems(true)
+        // Get items with no filters to get the latest items as "featured"
+        const response = await itemsAPI.getAllItems()
+        if (response.success) {
+          // Take first 6 items as featured items
+          setFeaturedItems(response.results.slice(0, 6))
+        }
+      } catch (error) {
+        console.error('Failed to fetch featured items:', error)
+        // Keep featured items empty if API fails
+        setFeaturedItems([])
+      } finally {
+        setIsLoadingItems(false)
+      }
+    }
+
+    fetchFeaturedItems()
+  }, [])
 
   const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % Math.ceil(featuredItems.length / 3))
+    if (featuredItems.length > 0) {
+      setCurrentSlide((prev) => (prev + 1) % Math.ceil(featuredItems.length / 3))
+    }
   }
 
   const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + Math.ceil(featuredItems.length / 3)) % Math.ceil(featuredItems.length / 3))
+    if (featuredItems.length > 0) {
+      setCurrentSlide((prev) => (prev - 1 + Math.ceil(featuredItems.length / 3)) % Math.ceil(featuredItems.length / 3))
+    }
   }
 
   const getVisibleItems = () => {
@@ -128,7 +95,7 @@ export default function LandingPage() {
                 <span className="text-white">Hello,</span>
                 <br />
                 <span className="bg-gradient-to-r from-emerald-400 via-purple-400 to-blue-400 bg-clip-text text-transparent animate-pulse">
-                  {user?.name?.split(" ")[0]}!
+                  {user?.first_name}!
                 </span>
               </h1>
 
@@ -137,7 +104,7 @@ export default function LandingPage() {
                 <span className="text-emerald-400 font-semibold">sustainable fashion</span> journey?
                 <br />
                 You have{" "}
-                <span className="text-purple-400 font-bold text-3xl">{user?.points}</span>{" "}
+                <span className="text-purple-400 font-bold text-3xl">{user?.points_balance}</span>{" "}
                 <span className="text-blue-400 font-semibold">points</span> to spend.
               </p>
 
@@ -179,9 +146,9 @@ export default function LandingPage() {
               {/* Premium Stats */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
                 {[
-                  { number: user?.points || 0, label: "Your Points", icon: Award, color: "emerald" },
-                  { number: "12", label: "Items Listed", icon: Package, color: "purple" },
-                  { number: "8", label: "Successful Swaps", icon: TrendingUp, color: "blue" }
+                  { number: user?.points_balance || 0, label: "Your Points", icon: Award, color: "emerald" },
+                  { number: user?.items_listed || 0, label: "Items Listed", icon: Package, color: "purple" },
+                  { number: user?.completed_swaps || 0, label: "Successful Swaps", icon: TrendingUp, color: "blue" }
                 ].map((stat, index) => (
                   <div 
                     key={index} 
@@ -248,26 +215,41 @@ export default function LandingPage() {
             {/* Premium Carousel */}
             <div className="relative">
               <div className="overflow-hidden rounded-3xl">
-                <div
-                  className="flex transition-transform duration-700 ease-out"
-                  style={{ transform: `translateX(-${currentSlide * 100}%)` }}
-                >
-                  {Array.from({ length: Math.ceil(featuredItems.length / 3) }).map((_, slideIdx) => (
+                {isLoadingItems ? (
+                  <div className="flex items-center justify-center py-32">
+                    <div className="text-center">
+                      <Package className="w-16 h-16 text-emerald-400 mx-auto mb-4 animate-pulse" />
+                      <p className="text-white/70">Loading featured items...</p>
+                    </div>
+                  </div>
+                ) : featuredItems.length === 0 ? (
+                  <div className="flex items-center justify-center py-32">
+                    <div className="text-center">
+                      <Package className="w-16 h-16 text-white/40 mx-auto mb-4" />
+                      <p className="text-white/70">No featured items available</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div
+                    className="flex transition-transform duration-700 ease-out"
+                    style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+                  >
+                    {Array.from({ length: Math.ceil(featuredItems.length / 3) }).map((_, slideIdx) => (
                     <div
                       key={slideIdx}
                       className="min-w-full grid grid-cols-1 md:grid-cols-3 gap-8 px-4"
                     >
                       {featuredItems.slice(slideIdx * 3, slideIdx * 3 + 3).map((item, itemIdx) => (
                         <Card 
-                          key={item.id} 
+                          key={item.item_id} 
                           className="group relative overflow-hidden bg-white/5 backdrop-blur-md border border-white/10 hover:border-white/30 rounded-3xl transition-all duration-700 hover:scale-105 hover:bg-white/10"
-                          onMouseEnter={() => setHoveredCard(item.id)}
+                          onMouseEnter={() => setHoveredCard(parseInt(item.item_id))}
                           onMouseLeave={() => setHoveredCard(null)}
                         >
                           <CardContent className="p-0 relative">
                             <div className="relative overflow-hidden rounded-t-3xl">
                               <Image
-                                src={item.image || "/placeholder.svg"}
+                                src={item.primary_image || "/placeholder.svg"}
                                 alt={item.title}
                                 width={300}
                                 height={300}
@@ -315,15 +297,15 @@ export default function LandingPage() {
                               <div className="flex items-center justify-between mb-4">
                                 <div className="flex items-center gap-4">
                                   <div className="text-2xl font-bold text-emerald-400">
-                                    {item.points} pts
+                                    {item.points_value} pts
                                   </div>
                                   <div className="text-sm text-white/50">
-                                    ~${item.usdPrice}
+                                    ~${Math.round(item.points_value * 0.5)}
                                   </div>
                                 </div>
                                 <div className="flex items-center gap-1 text-white/60">
                                   <Heart className="w-4 h-4 text-red-400" />
-                                  <span className="text-sm">{item.likes}</span>
+                                  <span className="text-sm">{item.likes_count}</span>
                                 </div>
                               </div>
                               
@@ -340,22 +322,25 @@ export default function LandingPage() {
                     </div>
                   ))}
                 </div>
+                )}
               </div>
               
               {/* Carousel Indicators */}
-              <div className="flex justify-center mt-8 gap-2">
-                {Array.from({ length: Math.ceil(featuredItems.length / 3) }).map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setCurrentSlide(index)}
-                    className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                      currentSlide === index 
-                        ? "bg-gradient-to-r from-emerald-400 to-purple-400 shadow-lg shadow-emerald-400/50" 
-                        : "bg-white/30 hover:bg-white/50"
-                    }`}
-                  />
-                ))}
-              </div>
+              {!isLoadingItems && featuredItems.length > 0 && (
+                <div className="flex justify-center mt-8 gap-2">
+                  {Array.from({ length: Math.ceil(featuredItems.length / 3) }).map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setCurrentSlide(index)}
+                      className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                        currentSlide === index 
+                          ? "bg-gradient-to-r from-emerald-400 to-purple-400 shadow-lg shadow-emerald-400/50" 
+                          : "bg-white/30 hover:bg-white/50"
+                      }`}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </section>
@@ -586,20 +571,35 @@ export default function LandingPage() {
 
           {/* Premium Carousel */}
           <div className="relative overflow-hidden rounded-3xl">
-            <div className="flex transition-transform duration-700 ease-out" style={{ transform: `translateX(-${currentSlide * 100}%)` }}>
-              {Array.from({ length: Math.ceil(featuredItems.length / 3) }).map((_, slideIdx) => (
+            {isLoadingItems ? (
+              <div className="flex items-center justify-center py-32">
+                <div className="text-center">
+                  <Package className="w-16 h-16 text-emerald-400 mx-auto mb-4 animate-pulse" />
+                  <p className="text-white/70">Loading featured items...</p>
+                </div>
+              </div>
+            ) : featuredItems.length === 0 ? (
+              <div className="flex items-center justify-center py-32">
+                <div className="text-center">
+                  <Package className="w-16 h-16 text-white/40 mx-auto mb-4" />
+                  <p className="text-white/70">No featured items available</p>
+                </div>
+              </div>
+            ) : (
+              <div className="flex transition-transform duration-700 ease-out" style={{ transform: `translateX(-${currentSlide * 100}%)` }}>
+                {Array.from({ length: Math.ceil(featuredItems.length / 3) }).map((_, slideIdx) => (
                 <div key={slideIdx} className="min-w-full grid grid-cols-1 md:grid-cols-3 gap-8 px-4">
                   {featuredItems.slice(slideIdx * 3, slideIdx * 3 + 3).map((item, itemIdx) => (
                     <div
-                      key={item.id}
+                      key={item.item_id}
                       className="group relative cursor-pointer"
-                      onMouseEnter={() => setHoveredCard(item.id)}
+                      onMouseEnter={() => setHoveredCard(parseInt(item.item_id))}
                       onMouseLeave={() => setHoveredCard(null)}
                     >
                       <div className="relative bg-white/5 backdrop-blur-md rounded-3xl border border-white/10 overflow-hidden transition-all duration-500 hover:bg-white/10 hover:border-white/30 hover:scale-105 hover:shadow-2xl hover:shadow-emerald-500/20">
                         <div className="relative overflow-hidden">
                           <Image
-                            src={item.image || "/placeholder.svg"}
+                            src={item.primary_image || "/placeholder.svg"}
                             alt={item.title}
                             width={400}
                             height={400}
@@ -634,7 +634,7 @@ export default function LandingPage() {
                             </Badge>
                             <div className="flex items-center gap-1">
                               <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                              <span className="text-white/70 text-sm">{item.likes}</span>
+                              <span className="text-white/70 text-sm">{item.likes_count}</span>
                             </div>
                           </div>
                           
@@ -644,10 +644,10 @@ export default function LandingPage() {
                           
                           <div className="flex items-center justify-between">
                             <div>
-                              <div className="text-2xl font-bold text-emerald-400">{item.points} pts</div>
-                              <div className="text-sm text-white/50">${item.usdPrice} value</div>
+                              <div className="text-2xl font-bold text-emerald-400">{item.points_value} pts</div>
+                              <div className="text-sm text-white/50">${Math.round(item.points_value * 0.5)} value</div>
                             </div>
-                            <Link href={`/item/${item.id}`}>
+                            <Link href={`/item/${item.item_id}`}>
                               <Button size="sm" className="bg-gradient-to-r from-emerald-500 to-purple-600 hover:from-emerald-600 hover:to-purple-700 text-white border-0 rounded-xl shadow-lg transition-all duration-300 hover:scale-105">
                                 View Item
                               </Button>
@@ -660,23 +660,26 @@ export default function LandingPage() {
                 </div>
               ))}
             </div>
+            )}
           </div>
 
           {/* Premium Carousel Indicators */}
-          <div className="flex justify-center mt-12 gap-3">
-            {Array.from({ length: Math.ceil(featuredItems.length / 3) }).map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setCurrentSlide(index)}
-                className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                  currentSlide === index 
-                    ? "bg-emerald-400 shadow-lg shadow-emerald-400/50 scale-125" 
-                    : "bg-white/30 hover:bg-white/50"
-                }`}
-                aria-label={`Go to slide ${index + 1}`}
-              />
-            ))}
-          </div>
+          {!isLoadingItems && featuredItems.length > 0 && (
+            <div className="flex justify-center mt-12 gap-3">
+              {Array.from({ length: Math.ceil(featuredItems.length / 3) }).map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentSlide(index)}
+                  className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                    currentSlide === index 
+                      ? "bg-emerald-400 shadow-lg shadow-emerald-400/50 scale-125" 
+                      : "bg-white/30 hover:bg-white/50"
+                  }`}
+                  aria-label={`Go to slide ${index + 1}`}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

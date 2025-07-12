@@ -1,119 +1,104 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
-import { Heart, Star, Grid3X3, List, SlidersHorizontal } from "lucide-react"
+import { Heart, Star, Grid3X3, List, SlidersHorizontal, Loader2, Search, Package } from "lucide-react"
+import { itemsAPI, Item } from "@/lib/api"
 
 export default function BrowsePage() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [searchQuery, setSearchQuery] = useState("")
+  const [items, setItems] = useState<Item[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [selectedFilters, setSelectedFilters] = useState({
-    category: [],
-    size: [],
-    condition: [],
-    priceRange: "",
+    category: "all",
+    size: "all",
+    condition: "all",
+    min_points: "",
+    max_points: "",
   })
-  // New state for display mode (currency or points)
-  const [displayMode, setDisplayMode] = useState<"currency" | "points">("currency")
 
-  const items = [
-    {
-      id: 1,
-      title: "Vintage Denim Jacket",
-      image: "/placeholder.svg?height=300&width=300",
-      condition: "Excellent",
-      points: 150,
-      usdPrice: 75, // Added USD price
-      category: "Outerwear",
-      size: "M",
-      brand: "Levi's",
-      likes: 24,
-      owner: "Sarah M.",
-      location: "Brooklyn, NY",
-    },
-    {
-      id: 2,
-      title: "Designer Summer Dress",
-      image: "/placeholder.svg?height=300&width=300",
-      condition: "Like New",
-      points: 200,
-      usdPrice: 100, // Added USD price
-      category: "Dresses",
-      size: "S",
-      brand: "Zara",
-      likes: 18,
-      owner: "Emma L.",
-      location: "Manhattan, NY",
-    },
-    {
-      id: 3,
-      title: "Classic White Sneakers",
-      image: "/placeholder.svg?height=300&width=300",
-      condition: "Good",
-      points: 120,
-      usdPrice: 60, // Added USD price
-      category: "Shoes",
-      size: "9",
-      brand: "Nike",
-      likes: 31,
-      owner: "Mike R.",
-      location: "Queens, NY",
-    },
-    {
-      id: 4,
-      title: "Wool Winter Coat",
-      image: "/placeholder.svg?height=300&width=300",
-      condition: "Very Good",
-      points: 180,
-      usdPrice: 90, // Added USD price
-      category: "Outerwear",
-      size: "L",
-      brand: "Uniqlo",
-      likes: 15,
-      owner: "Alex K.",
-      location: "Bronx, NY",
-    },
-    {
-      id: 5,
-      title: "Silk Blouse",
-      image: "/placeholder.svg?height=300&width=300",
-      condition: "Excellent",
-      points: 130,
-      usdPrice: 65, // Added USD price
-      category: "Tops",
-      size: "M",
-      brand: "H&M",
-      likes: 22,
-      owner: "Lisa P.",
-      location: "Brooklyn, NY",
-    },
-    {
-      id: 6,
-      title: "Leather Ankle Boots",
-      image: "/placeholder.svg?height=300&width=300",
-      condition: "Good",
-      points: 140,
-      usdPrice: 70, // Added USD price
-      category: "Shoes",
-      size: "8",
-      brand: "Dr. Martens",
-      likes: 27,
-      owner: "Jenny W.",
-      location: "Manhattan, NY",
-    },
-  ]
+  useEffect(() => {
+    const fetchItems = async () => {
+      try {
+        setIsLoading(true)
+        setError(null)
+
+        const filters: any = {}
+        if (selectedFilters.category && selectedFilters.category !== "all") filters.category = selectedFilters.category
+        if (selectedFilters.size && selectedFilters.size !== "all") filters.size = selectedFilters.size
+        if (selectedFilters.condition && selectedFilters.condition !== "all") filters.condition = selectedFilters.condition
+        if (selectedFilters.min_points) filters.min_points = parseInt(selectedFilters.min_points)
+        if (selectedFilters.max_points) filters.max_points = parseInt(selectedFilters.max_points)
+        if (searchQuery.trim()) filters.search = searchQuery.trim()
+
+        const response = await itemsAPI.getAllItems(filters)
+        
+        if (response.success) {
+          setItems(response.results)
+        }
+      } catch (err: any) {
+        console.error("Failed to fetch items:", err)
+        setError(err.message || "Failed to load items")
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    const timeoutId = setTimeout(fetchItems, 300) // Debounce search
+    return () => clearTimeout(timeoutId)
+  }, [searchQuery, selectedFilters])
+
+  const handleFilterChange = (key: string, value: string) => {
+    setSelectedFilters(prev => ({
+      ...prev,
+      [key]: value
+    }))
+  }
+
+  const clearFilters = () => {
+    setSelectedFilters({
+      category: "all",
+      size: "all",
+      condition: "all",
+      min_points: "",
+      max_points: "",
+    })
+    setSearchQuery("")
+  }
 
   const categories = ["Tops", "Bottoms", "Dresses", "Outerwear", "Shoes", "Accessories"]
-  const sizes = ["XS", "S", "M", "L", "XL", "XXL"]
+  const sizes = ["XS", "S", "M", "L", "XL", "XXL", "6", "7", "8", "9", "10", "11", "12"]
   const conditions = ["New with tags", "Like new", "Excellent", "Very good", "Good", "Fair"]
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Error Loading Items</h1>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <Button onClick={() => window.location.reload()}>Try Again</Button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -130,75 +115,107 @@ export default function BrowsePage() {
               </div>
 
               <div className="p-4 space-y-6">
+                {/* Search */}
+                <div>
+                  <Label htmlFor="search" className="text-sm font-medium">Search</Label>
+                  <div className="relative mt-1">
+                    <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <Input
+                      id="search"
+                      placeholder="Search items..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-9"
+                    />
+                  </div>
+                </div>
+
+                <Separator />
+
                 {/* Category Filter */}
                 <div>
-                  <h3 className="font-medium mb-3">Category</h3>
-                  <div className="space-y-2">
-                    {categories.map((category) => (
-                      <div key={category} className="flex items-center space-x-2">
-                        <Checkbox id={category} />
-                        <Label htmlFor={category} className="text-sm font-normal">
+                  <Label className="text-sm font-medium">Category</Label>
+                  <Select value={selectedFilters.category} onValueChange={(value) => handleFilterChange("category", value)}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="All categories" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All categories</SelectItem>
+                      {categories.map((category) => (
+                        <SelectItem key={category} value={category}>
                           {category}
-                        </Label>
-                      </div>
-                    ))}
-                  </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <Separator />
 
                 {/* Size Filter */}
                 <div>
-                  <h3 className="font-medium mb-3">Size</h3>
-                  <div className="grid grid-cols-3 gap-2">
-                    {sizes.map((size) => (
-                      <div key={size} className="flex items-center space-x-2">
-                        <Checkbox id={size} />
-                        <Label htmlFor={size} className="text-sm font-normal">
+                  <Label className="text-sm font-medium">Size</Label>
+                  <Select value={selectedFilters.size} onValueChange={(value) => handleFilterChange("size", value)}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="All sizes" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All sizes</SelectItem>
+                      {sizes.map((size) => (
+                        <SelectItem key={size} value={size}>
                           {size}
-                        </Label>
-                      </div>
-                    ))}
-                  </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <Separator />
 
                 {/* Condition Filter */}
                 <div>
-                  <h3 className="font-medium mb-3">Condition</h3>
-                  <div className="space-y-2">
-                    {conditions.map((condition) => (
-                      <div key={condition} className="flex items-center space-x-2">
-                        <Checkbox id={condition} />
-                        <Label htmlFor={condition} className="text-sm font-normal">
+                  <Label className="text-sm font-medium">Condition</Label>
+                  <Select value={selectedFilters.condition} onValueChange={(value) => handleFilterChange("condition", value)}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="All conditions" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All conditions</SelectItem>
+                      {conditions.map((condition) => (
+                        <SelectItem key={condition} value={condition}>
                           {condition}
-                        </Label>
-                      </div>
-                    ))}
-                  </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <Separator />
 
                 {/* Point Range */}
                 <div>
-                  <h3 className="font-medium mb-3">Point Range</h3>
-                  <Select>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select range" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="0-100">0 - 100 points</SelectItem>
-                      <SelectItem value="100-200">100 - 200 points</SelectItem>
-                      <SelectItem value="200-300">200 - 300 points</SelectItem>
-                      <SelectItem value="300+">300+ points</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label className="text-sm font-medium">Points Range</Label>
+                  <div className="grid grid-cols-2 gap-2 mt-1">
+                    <Input
+                      placeholder="Min"
+                      type="number"
+                      value={selectedFilters.min_points}
+                      onChange={(e) => handleFilterChange("min_points", e.target.value)}
+                    />
+                    <Input
+                      placeholder="Max"
+                      type="number"
+                      value={selectedFilters.max_points}
+                      onChange={(e) => handleFilterChange("max_points", e.target.value)}
+                    />
+                  </div>
                 </div>
 
-                <Button variant="outline" className="w-full bg-transparent">
-                  Clear Filters
+                <Separator />
+
+                {/* Clear Filters */}
+                <Button variant="outline" onClick={clearFilters} className="w-full">
+                  Clear All Filters
                 </Button>
               </div>
             </Card>
@@ -206,145 +223,126 @@ export default function BrowsePage() {
 
           {/* Main Content */}
           <div className="flex-1">
-            {/* Results Header */}
-            <div className="flex items-center justify-between mb-6">
+            {/* Header */}
+            <div className="flex justify-between items-center mb-6">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Browse Items</h1>
-                <p className="text-gray-600">{items.length} items available</p>
+                <h1 className="text-3xl font-bold mb-2">Browse Items</h1>
+                <p className="text-gray-600">
+                  {items.length} {items.length === 1 ? "item" : "items"} found
+                </p>
               </div>
-
-              <div className="flex items-center gap-4">
-                <Select defaultValue="newest">
-                  <SelectTrigger className="w-40">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="newest">Newest first</SelectItem>
-                    <SelectItem value="oldest">Oldest first</SelectItem>
-                    <SelectItem value="price-low">Points: Low to High</SelectItem>
-                    <SelectItem value="price-high">Points: High to Low</SelectItem>
-                    <SelectItem value="popular">Most Popular</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                {/* New: Select for display mode */}
-                <Select value={displayMode} onValueChange={(value: "currency" | "points") => setDisplayMode(value)}>
-                  <SelectTrigger className="w-40">
-                    <SelectValue placeholder="Display as" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="currency">Show Currency</SelectItem>
-                    <SelectItem value="points">Show Points</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <div className="flex items-center border rounded-lg">
-                  <Button
-                    variant={viewMode === "grid" ? "default" : "ghost"}
-                    size="sm"
-                    onClick={() => setViewMode("grid")}
-                    className="rounded-r-none"
-                  >
-                    <Grid3X3 className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant={viewMode === "list" ? "default" : "ghost"}
-                    size="sm"
-                    onClick={() => setViewMode("list")}
-                    className="rounded-l-none"
-                  >
-                    <List className="w-4 h-4" />
-                  </Button>
-                </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant={viewMode === "grid" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setViewMode("grid")}
+                >
+                  <Grid3X3 className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant={viewMode === "list" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setViewMode("list")}
+                >
+                  <List className="w-4 h-4" />
+                </Button>
               </div>
             </div>
 
-            {/* Items Grid */}
-            <div
-              className={`grid gap-6 ${
-                viewMode === "grid" ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" : "grid-cols-1"
-              }`}
-            >
-              {items.map((item) => (
-                <Card key={item.id} className="group hover:shadow-lg transition-shadow cursor-pointer">
-                  <CardContent className="p-0">
-                    <div className={`${viewMode === "list" ? "flex" : ""}`}>
-                      <div className={`relative ${viewMode === "list" ? "w-48 flex-shrink-0" : ""}`}>
-                        <Image
-                          src={item.image || "/placeholder.svg"}
-                          alt={item.title}
-                          width={300}
-                          height={300}
-                          className={`w-full object-cover ${viewMode === "list" ? "h-48" : "h-48 rounded-t-lg"}`}
-                        />
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="absolute top-2 right-2 w-8 h-8 p-0 bg-white/80 hover:bg-white"
-                        >
-                          <Heart className="w-4 h-4" />
-                        </Button>
-                        <Badge className="absolute top-2 left-2 bg-green-600">{item.condition}</Badge>
-                      </div>
-
-                      <div className={`p-4 ${viewMode === "list" ? "flex-1" : ""}`}>
-                        <div className={`${viewMode === "list" ? "flex justify-between items-start" : ""}`}>
-                          <div className={`${viewMode === "list" ? "flex-1" : ""}`}>
-                            <h3 className="font-semibold text-gray-900 mb-2 group-hover:text-green-600 transition-colors">
-                              {item.title}
-                            </h3>
-                            <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
-                              <span>{item.brand}</span>
-                              <span>Size {item.size}</span>
-                            </div>
-                            <div className="flex items-center gap-1 text-sm text-gray-600 mb-3">
-                              <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                              <span>{item.likes} likes</span>
-                              <span className="mx-2">•</span>
-                              <span>{item.location}</span>
+            {/* Items Grid/List */}
+            {items.length === 0 ? (
+              <div className="text-center py-12">
+                <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No items found</h3>
+                <p className="text-gray-600">Try adjusting your filters or search terms</p>
+              </div>
+            ) : (
+              <div className={viewMode === "grid" ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" : "space-y-4"}>
+                {items.map((item) => (
+                  <Card key={item.item_id} className="hover:shadow-md transition-shadow">
+                    <CardContent className="p-4">
+                      {viewMode === "grid" ? (
+                        <>
+                          <div className="relative mb-3">
+                            <Image
+                              src={item.primary_image || "/placeholder.svg"}
+                              alt={item.title}
+                              width={300}
+                              height={200}
+                              className="w-full h-48 object-cover rounded-lg"
+                            />
+                            <Badge className="absolute top-2 right-2 bg-white text-gray-700">
+                              {item.condition}
+                            </Badge>
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              className="absolute bottom-2 right-2"
+                            >
+                              <Heart className={`w-4 h-4 ${item.is_liked ? "fill-red-500 text-red-500" : ""}`} />
+                            </Button>
+                          </div>
+                          <h3 className="font-medium text-lg mb-2">{item.title}</h3>
+                          <p className="text-sm text-gray-600 mb-3 line-clamp-2">{item.description}</p>
+                          <div className="flex items-center justify-between mb-3">
+                            <span className="font-bold text-green-600">{item.points_value} points</span>
+                            <Badge variant="outline">{item.size}</Badge>
+                          </div>
+                          <div className="flex items-center justify-between text-sm text-gray-500">
+                            <span>{item.uploader.full_name}</span>
+                            <div className="flex items-center gap-2">
+                              <span className="flex items-center gap-1">
+                                <Heart className="w-4 h-4" />
+                                {item.likes_count}
+                              </span>
+                              <Link href={`/item/${item.item_id}`}>
+                                <Button size="sm">View</Button>
+                              </Link>
                             </div>
                           </div>
-
-                          <div
-                            className={`${viewMode === "list" ? "text-right ml-4" : "flex items-center justify-between"}`}
-                          >
-                            {/* Updated: Conditional price display */}
-                            <span className="font-semibold text-green-600 text-lg">
-                              {displayMode === "currency" ? `$${item.usdPrice}` : `${item.points} points`}
-                            </span>
-                            {viewMode === "grid" && (
-                              <Link href={`/item/${item.id}`}>
-                                <Button size="sm" className="bg-green-600 hover:bg-green-700">
-                                  View Item
+                        </>
+                      ) : (
+                        <div className="flex gap-4">
+                          <Image
+                            src={item.primary_image || "/placeholder.svg"}
+                            alt={item.title}
+                            width={120}
+                            height={120}
+                            className="w-30 h-30 object-cover rounded-lg flex-shrink-0"
+                          />
+                          <div className="flex-1">
+                            <div className="flex justify-between items-start mb-2">
+                              <h3 className="font-medium text-lg">{item.title}</h3>
+                              <Badge>{item.condition}</Badge>
+                            </div>
+                            <p className="text-sm text-gray-600 mb-3">{item.description}</p>
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-4">
+                                <span className="font-bold text-green-600">{item.points_value} points</span>
+                                <Badge variant="outline">{item.size}</Badge>
+                                <span className="text-sm text-gray-500">{item.uploader.full_name}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                >
+                                  <Heart className={`w-4 h-4 ${item.is_liked ? "fill-red-500 text-red-500" : ""}`} />
+                                  {item.likes_count}
                                 </Button>
-                              </Link>
-                            )}
+                                <Link href={`/item/${item.item_id}`}>
+                                  <Button size="sm">View Details</Button>
+                                </Link>
+                              </div>
+                            </div>
                           </div>
                         </div>
-
-                        {viewMode === "list" && (
-                          <div className="flex items-center justify-between mt-4">
-                            <span className="text-sm text-gray-600">by {item.owner}</span>
-                            <Link href={`/item/${item.id}`}>
-                              <Button size="sm" className="bg-green-600 hover:bg-green-700">
-                                View Item
-                              </Button>
-                            </Link>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            {/* Load More */}
-            <div className="text-center mt-12">
-              <Button variant="outline" size="lg">
-                Load More Items
-              </Button>
-            </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

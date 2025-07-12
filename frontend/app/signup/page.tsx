@@ -14,7 +14,7 @@ import { Recycle, Eye, EyeOff, Check } from "lucide-react"
 // Add import for useRouter and Loader2 icon
 import { useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
-import { signupUser } from "@/lib/auth-api"
+import { authAPI } from "@/lib/api"
 
 export default function SignupPage() {
   // Inside SignupPage component, add router instance and loading/status states
@@ -52,7 +52,7 @@ export default function SignupPage() {
     }
 
     try {
-      await signupUser({
+      await authAPI.signup({
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,

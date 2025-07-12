@@ -54,6 +54,16 @@ Develop **ReWear**, a web-based platform that enables users to exchange unused c
 
 ## 🏗️ Technical Architecture
 
+### Database Schema (ERD)
+![Entity Relationship Diagram](ERD.png)
+
+The database consists of 5 core entities:
+- **User**: Extended Django user model with profile information, points balance, and platform statistics
+- **Item**: Clothing items with detailed categorization, condition, and metadata
+- **ItemImage**: Multiple images per item with primary image designation
+- **Transaction**: Swap requests, purchases, and transaction status tracking
+- **Rating**: User rating and review system for trust building
+
 ### Backend (Django + PostgreSQL)
 - **Framework**: Django 5.1.5 with Django REST Framework
 - **Database**: PostgreSQL for robust data management
@@ -67,6 +77,15 @@ Develop **ReWear**, a web-based platform that enables users to exchange unused c
 - **Styling**: Tailwind CSS for responsive design
 - **State Management**: React hooks and context
 - **API Integration**: Axios for HTTP requests
+
+### API Documentation & Testing
+- **Comprehensive API Tests**: 27 Postman test cases covering all endpoints
+- **Test Categories**: Authentication, User Management, Item Management, Transactions, Ratings, Error Handling
+- **Files**: 
+  - `backend/ReWear_API_Complete_Tests.postman_collection.json`
+  - `backend/ReWear_API_Environment.postman_environment.json`
+  - `backend/API_Testing_Guide.md`
+- **Live API**: [Production API Endpoint](https://rewear-community-clothing-exchange-production.up.railway.app/api/)
 
 ---
 
@@ -97,9 +116,11 @@ npm run dev
 ```
 
 ### Quick Start
-- Backend: `http://localhost:8000`
-- Frontend: `http://localhost:3000`
-- Admin Panel: `http://localhost:8000/admin`
+- **Production Backend**: `https://rewear-community-clothing-exchange-production.up.railway.app`
+- **Production API**: `https://rewear-community-clothing-exchange-production.up.railway.app/api/`
+- **Local Backend**: `http://localhost:8000`
+- **Local Frontend**: `http://localhost:3000`
+- **Admin Panel**: `http://localhost:8000/admin` (admin/admin123 or venkatesh/venkat*2005)
 
 ---
 
@@ -140,12 +161,18 @@ Odoo-hackathon/
 
 - ✅ Backend Django setup with PostgreSQL
 - ✅ Frontend Next.js setup with TypeScript & Tailwind
-- 🔄 API endpoints development
+- ✅ Complete API endpoints development (27 endpoints)
+- ✅ Comprehensive API testing with Postman (27 test cases)
+- ✅ Database schema design and ERD
+- ✅ User authentication system with JWT
+- ✅ Item management features (CRUD, image upload, filtering)
+- ✅ Swap/transaction mechanism with points system
+- ✅ Rating and review system
+- ✅ Admin panel with Django admin
+- ✅ Production deployment on Railway
 - 🔄 User interface implementation
-- 🔄 Authentication system
-- 🔄 Item management features
-- 🔄 Swap mechanism
-- 🔄 Admin panel
+- 🔄 Frontend-backend integration
+- 🔄 UI/UX refinements
 
 ---
 

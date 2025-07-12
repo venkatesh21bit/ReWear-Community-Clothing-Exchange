@@ -15,7 +15,6 @@ urlpatterns = [
     
     # Item Management endpoints
     path('items/', views.ItemListCreateView.as_view(), name='item_list_create'),
-    path('items/debug/', views.ItemDebugView.as_view(), name='item_debug'),  # Temporary debug endpoint
     path('items/<uuid:item_id>/', views.ItemDetailView.as_view(), name='item_detail'),
     path('users/me/items/', views.UserItemsView.as_view(), name='user_items'),
     

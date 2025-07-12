@@ -69,9 +69,9 @@ export function MainHeader() {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-12 w-12 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-emerald-400/30 transition-all duration-300 hover:scale-105 group">
                     <Avatar className="h-9 w-9">
-                      <AvatarImage src="/placeholder.svg?height=36&width=36" alt={user?.name} />
+                      <AvatarImage src={user?.avatar || "/placeholder.svg"} alt={user?.full_name} />
                       <AvatarFallback className="bg-gradient-to-br from-emerald-500 to-purple-600 text-white font-bold">
-                        {user?.name?.charAt(0) || "U"}
+                        {user?.full_name?.charAt(0) || "U"}
                       </AvatarFallback>
                     </Avatar>
                     <div className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-400 rounded-full border-2 border-black/90 animate-pulse"></div>
@@ -80,16 +80,16 @@ export function MainHeader() {
                 <DropdownMenuContent className="w-64 bg-black/95 backdrop-blur-xl border border-white/10 shadow-2xl rounded-2xl p-2" align="end" forceMount>
                   <div className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-emerald-500/10 to-purple-600/10 border border-white/5 mb-2">
                     <Avatar className="h-10 w-10">
-                      <AvatarImage src="/placeholder.svg?height=40&width=40" alt={user?.name} />
+                      <AvatarImage src={user?.avatar || "/placeholder.svg"} alt={user?.full_name} />
                       <AvatarFallback className="bg-gradient-to-br from-emerald-500 to-purple-600 text-white font-bold">
-                        {user?.name?.charAt(0) || "U"}
+                        {user?.full_name?.charAt(0) || "U"}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex flex-col">
-                      <p className="font-semibold text-white">{user?.name}</p>
+                      <p className="font-semibold text-white">{user?.full_name}</p>
                       <p className="text-sm text-white/60 truncate max-w-[150px]">{user?.email}</p>
                       <Badge className="mt-1 w-fit px-2 py-0.5 bg-emerald-500/20 border-emerald-400/30 text-emerald-300 text-xs font-semibold">
-                        {user?.points} points
+                        {user?.points_balance} points
                       </Badge>
                     </div>
                   </div>
