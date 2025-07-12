@@ -28,4 +28,15 @@ else:
 "
 
 echo "🚀 Starting gunicorn server..."
-exec gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 60
+echo "PORT: $PORT"
+echo "RAILWAY_ENVIRONMENT: $RAILWAY_ENVIRONMENT"
+exec gunicorn config.wsgi:application \
+    --bind 0.0.0.0:$PORT \
+    --workers 2 \
+    --timeout 120 \
+    --keep-alive 2 \
+    --max-requests 1000 \
+    --max-requests-jitter 100 \
+    --log-level info \
+    --access-logfile - \
+    --error-logfile -

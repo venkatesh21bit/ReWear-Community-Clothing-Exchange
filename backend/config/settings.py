@@ -141,7 +141,14 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'static'
+
+# Railway deployment static files configuration
+if os.environ.get('RAILWAY_ENVIRONMENT'):
+    # Railway collects static files to /app/static
+    STATIC_ROOT = '/app/static'
+else:
+    # Local development
+    STATIC_ROOT = BASE_DIR / 'static'
 
 # Media files
 MEDIA_URL = '/media/'

@@ -4,6 +4,23 @@ from rest_framework.response import Response
 from rest_framework import status
 import datetime
 
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def api_root(request):
+    """
+    ReWear API Root Endpoint
+    """
+    return Response({
+        'message': 'Welcome to ReWear Community Clothing Exchange API',
+        'version': '1.0',
+        'timestamp': datetime.datetime.now().isoformat(),
+        'endpoints': {
+            'admin': '/admin/',
+            'api': '/api/',
+        },
+        'status': 'operational'
+    }, status=status.HTTP_200_OK)
+
 # Add your API views here
 # Example:
 # @api_view(['GET'])
