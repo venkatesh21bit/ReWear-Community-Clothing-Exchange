@@ -9,8 +9,8 @@ pip --version
 echo "Running database migrations..."
 python manage.py migrate --noinput
 
-echo "Collecting static files..."
-python manage.py collectstatic --noinput
+echo "Static files already collected locally - skipping collectstatic..."
+ls -la static/ || echo "Static directory listing failed"
 
 echo "Creating superuser (if not exists)..."
 python -c "
