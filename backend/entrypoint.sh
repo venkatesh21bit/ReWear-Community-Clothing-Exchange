@@ -63,31 +63,74 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
 from app.core.models import User
 
+print('📊 Checking existing users...')
+all_users = User.objects.all()
+print(f'Total users in database: {all_users.count()}')
+for user in all_users:
+    print(f'  - {user.username} | {user.email} | staff: {user.is_staff} | superuser: {user.is_superuser}')
+
 # Create admin superuser
-if not User.objects.filter(username='admin').exists():
-    User.objects.create_superuser(
+admin_email = 'admin@rewear.com'
+if not User.objects.filter(email=admin_email).exists():
+    admin_user = User.objects.create_superuser(
         username='admin',
-        email='admin@rewear.com', 
+        email=admin_email, 
         password='admin123',
         first_name='Admin',
         last_name='User'
     )
-    print('✅ Admin superuser created: admin/admin123')
+    admin_user.is_staff = True
+    admin_user.is_superuser = True
+    admin_user.save()
+    print(f'✅ Admin superuser created: {admin_email} / admin123')
+else:
+    admin_user = User.objects.get(email=admin_email)
+    admin_user.is_staff = True
+    admin_user.is_superuser = True
+    admin_user.save()
+    print(f'✅ Admin user already exists: {admin_email}')
 
 # Create venkatesh superuser  
-if not User.objects.filter(username='venkatesh').exists():
-    User.objects.create_superuser(
+venkatesh_email = 'venkatesh.k21062005@gmail.com'
+if not User.objects.filter(email=venkatesh_email).exists():
+    venkatesh_user = User.objects.create_superuser(
         username='venkatesh',
-        email='venkatesh.k21062005@gmail.com', 
+        email=venkatesh_email, 
         password='venkat*2005',
         first_name='Venkatesh',
         last_name='User'
     )
-    print('✅ Venkatesh superuser created: venkatesh/venkat*2005')
+    venkatesh_user.is_staff = True
+    venkatesh_user.is_superuser = True
+    venkatesh_user.save()
+    print(f'✅ Venkatesh superuser created: {venkatesh_email} / venkat*2005')
+else:
+    venkatesh_user = User.objects.get(email=venkatesh_email)
+    venkatesh_user.is_staff = True
+    venkatesh_user.is_superuser = True
+    venkatesh_user.save()
+    print(f'✅ Venkatesh user already exists: {venkatesh_email}')
 
-# Display all superusers
+# Verify superusers
 superusers = User.objects.filter(is_superuser=True)
-print(f'📋 Available superusers: {[user.username for user in superusers]}')
+print(f'📋 Available superusers: {[f\"{user.email}({user.username})\" for user in superusers]}')
+
+# Test password verification
+print('🔐 Testing password verification...')
+for email in [admin_email, venkatesh_email]:
+    try:
+        user = User.objects.get(email=email)
+        password = 'admin123' if 'admin' in email else 'venkat*2005'
+        if user.check_password(password):
+            print(f'✅ Password verification SUCCESS for {email}')
+        else:
+            print(f'❌ Password verification FAILED for {email}')
+            # Reset password
+            user.set_password(password)
+            user.save()
+            print(f'🔄 Password reset for {email}')
+    except User.DoesNotExist:
+        print(f'❌ User not found: {email}')
 "
 
 echo "🚀 Starting gunicorn server..."
