@@ -114,6 +114,15 @@ try:
         print(f'✅ Login should work: admin@rewear.com / admin123')
     else:
         print(f'❌ Password verification failed for admin@rewear.com')
+    
+    # Also test authentication the way Django admin does it
+    from django.contrib.auth import authenticate
+    auth_user = authenticate(username='admin@rewear.com', password='admin123')
+    if auth_user:
+        print(f'✅ Django authenticate() works with email as username')
+    else:
+        print(f'❌ Django authenticate() failed with email as username')
+        
 except User.DoesNotExist:
     print(f'❌ Admin user not found')
 "

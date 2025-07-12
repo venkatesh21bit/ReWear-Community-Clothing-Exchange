@@ -19,8 +19,11 @@ class CustomUserAdmin(BaseUserAdmin):
     search_fields = ['email', 'first_name', 'last_name', 'username']
     ordering = ['-date_joined']
     
+    # Configure login field for admin
+    username_field = 'email'
+    
     fieldsets = (
-        (None, {'fields': ('username', 'email', 'password')}),
+        (None, {'fields': ('email', 'password')}),
         ('Personal info', {'fields': ('first_name', 'last_name', 'bio', 'location', 'avatar', 'phone_number')}),
         ('Platform info', {'fields': ('points_balance', 'role', 'total_swaps', 'items_listed', 'completed_swaps', 'ongoing_swaps')}),
         ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'is_suspended', 'groups', 'user_permissions')}),
