@@ -47,7 +47,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     
     # Local apps (add your apps here)
-    'apps.core',
+    'app.core',
 ]
 
 # Custom User Model

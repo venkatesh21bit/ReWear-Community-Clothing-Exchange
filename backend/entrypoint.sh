@@ -18,7 +18,7 @@ import os
 import django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
-from apps.core.models import User
+from app.core.models import User
 
 # Create admin superuser
 if not User.objects.filter(username='admin').exists():
