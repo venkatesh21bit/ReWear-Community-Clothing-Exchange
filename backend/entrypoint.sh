@@ -78,7 +78,7 @@ if not User.objects.filter(username='admin').exists():
 if not User.objects.filter(username='venkatesh').exists():
     User.objects.create_superuser(
         username='venkatesh',
-        email='venkatesh@rewear.com', 
+        email='venkatesh.k21062005@gmail.com', 
         password='venkat*2005',
         first_name='Venkatesh',
         last_name='User'
