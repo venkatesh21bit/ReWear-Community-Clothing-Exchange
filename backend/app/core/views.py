@@ -410,20 +410,82 @@ class UserItemsView(APIView):
     permission_classes = [IsAuthenticated]
     
     def get(self, request):
-        queryset = Item.objects.filter(uploader=request.user).prefetch_related('images').order_by('-created_at')
-        
-        # Filter by status if provided
-        status_filter = request.query_params.get('status')
-        if status_filter:
-            queryset = queryset.filter(status=status_filter)
-        
-        serializer = UserItemsSerializer(queryset, many=True, context={'request': request})
-        
-        return Response({
-            'success': True,
-            'count': queryset.count(),
-            'results': serializer.data
-        }, status=status.HTTP_200_OK)
+        try:
+            # Log the request for debugging
+            print(f"GET /api/users/me/items/ - User: {request.user}")
+            
+            queryset = Item.objects.filter(uploader=request.user).prefetch_related('images').order_by('-created_at')
+            
+            # Filter by status if provided
+            status_filter = request.query_params.get('status')
+            if status_filter:
+                queryset = queryset.filter(status=status_filter)
+            
+            print(f"Found {queryset.count()} items for user {request.user}")
+            
+            try:
+                # Test serialization with enhanced error handling
+                serializer = UserItemsSerializer(queryset, many=True, context={'request': request})
+                serialized_data = serializer.data
+                print(f"Successfully serialized {len(serialized_data)} items")
+                
+                return Response({
+                    'success': True,
+                    'count': queryset.count(),
+                    'results': serialized_data
+                }, status=status.HTTP_200_OK)
+                
+            except Exception as serialization_error:
+                # Log serialization error details
+                import traceback
+                error_details = {
+                    'error': str(serialization_error),
+                    'traceback': traceback.format_exc(),
+                    'user_id': request.user.user_id,
+                    'items_count': queryset.count()
+                }
+                print(f"Serialization error in UserItemsView: {error_details}")
+                
+                # Try to identify which item is causing the issue
+                problematic_items = []
+                for item in queryset:
+                    try:
+                        item_serializer = UserItemsSerializer(item, context={'request': request})
+                        _ = item_serializer.data  # Force serialization
+                    except Exception as item_error:
+                        problematic_items.append({
+                            'item_id': str(item.item_id),
+                            'title': item.title,
+                            'error': str(item_error)
+                        })
+                
+                return Response({
+                    'success': False,
+                    'message': 'Failed to serialize user items',
+                    'error': str(serialization_error),
+                    'debug_info': {
+                        'total_items': queryset.count(),
+                        'problematic_items': problematic_items,
+                        'error_details': error_details if settings.DEBUG else None
+                    }
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                
+        except Exception as e:
+            # Log any unexpected errors
+            import traceback
+            error_details = {
+                'error': str(e),
+                'traceback': traceback.format_exc(),
+                'user_id': request.user.user_id if hasattr(request.user, 'user_id') else None
+            }
+            print(f"Unexpected error in UserItemsView: {error_details}")
+            
+            return Response({
+                'success': False,
+                'message': 'Internal server error occurred',
+                'error': str(e),
+                'debug_info': error_details if settings.DEBUG else None
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 # ===============================
