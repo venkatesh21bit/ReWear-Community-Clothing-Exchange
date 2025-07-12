@@ -148,7 +148,7 @@ class ItemListSerializer(serializers.ModelSerializer):
         fields = (
             'item_id', 'title', 'primary_image', 'condition', 'points_value',
             'category', 'size', 'brand', 'likes_count', 'is_liked', 'uploader',
-            'created_at', 'status'
+            'created_at', 'status', 'images'
         )
     
     def get_primary_image(self, obj):
