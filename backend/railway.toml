@@ -1,0 +1,28 @@
+# Railway.toml - Railway deployment configuration
+
+[build]
+builder = "nixpacks"
+
+[deploy]
+healthcheckPath = "/api/health/"
+healthcheckTimeout = 300
+restartPolicyType = "on_failure"
+
+[[env]]
+name = "PORT"
+value = "8000"
+
+[[env]]
+name = "DJANGO_SETTINGS_MODULE"
+value = "config.settings"
+
+[[env]]
+name = "PYTHONPATH"
+value = "/app"
+
+# Environment variables to set in Railway dashboard:
+# DATABASE_URL - Will be automatically provided by Railway PostgreSQL
+# SECRET_KEY - Generate a secure secret key
+# DEBUG - Set to False for production
+# ALLOWED_HOSTS - Set to your Railway domain
+# CORS_ALLOWED_ORIGINS - Set to your frontend domain
