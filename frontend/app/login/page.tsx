@@ -10,37 +10,43 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Recycle, Eye, EyeOff } from "lucide-react"
-
-// Add import for useRouter and Loader2 icon
 import { useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
+import { useAuth } from "@/contexts/auth-context"
 
 export default function LoginPage() {
-  // Inside LoginPage component, add router instance and loading/status states
   const router = useRouter()
+  const { login } = useAuth()
   const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isLoggingIn, setIsLoggingIn] = useState(false)
   const [loginStatus, setLoginStatus] = useState<{ type: "success" | "error"; message: string } | null>(null)
 
-  // Update handleSubmit function
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoggingIn(true)
-    setLoginStatus(null) // Clear previous status
+    setLoginStatus(null)
 
     console.log("Login attempt:", { email, password })
 
-    // Simulate API call
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500)) // Simulate network delay
+      await new Promise((resolve) => setTimeout(resolve, 1500))
 
-      // Simulate successful login for any input for now
       if (email && password) {
+        // Simulate successful login with mock user data
+        const userData = {
+          id: "1",
+          name: "John Doe",
+          email: email,
+          points: 1250,
+        }
+
+        login(userData) // Update auth context
         setLoginStatus({ type: "success", message: "Login successful! Redirecting..." })
+
         setTimeout(() => {
-          router.push("/dashboard") // Redirect to dashboard on success
+          router.push("/") // Redirect to home page to see logged-in state
         }, 500)
       } else {
         setLoginStatus({ type: "error", message: "Please enter both email and password." })

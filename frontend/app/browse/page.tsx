@@ -21,6 +21,8 @@ export default function BrowsePage() {
     condition: [],
     priceRange: "",
   })
+  // New state for display mode (currency or points)
+  const [displayMode, setDisplayMode] = useState<"currency" | "points">("currency")
 
   const items = [
     {
@@ -29,6 +31,7 @@ export default function BrowsePage() {
       image: "/placeholder.svg?height=300&width=300",
       condition: "Excellent",
       points: 150,
+      usdPrice: 75, // Added USD price
       category: "Outerwear",
       size: "M",
       brand: "Levi's",
@@ -42,6 +45,7 @@ export default function BrowsePage() {
       image: "/placeholder.svg?height=300&width=300",
       condition: "Like New",
       points: 200,
+      usdPrice: 100, // Added USD price
       category: "Dresses",
       size: "S",
       brand: "Zara",
@@ -55,6 +59,7 @@ export default function BrowsePage() {
       image: "/placeholder.svg?height=300&width=300",
       condition: "Good",
       points: 120,
+      usdPrice: 60, // Added USD price
       category: "Shoes",
       size: "9",
       brand: "Nike",
@@ -68,6 +73,7 @@ export default function BrowsePage() {
       image: "/placeholder.svg?height=300&width=300",
       condition: "Very Good",
       points: 180,
+      usdPrice: 90, // Added USD price
       category: "Outerwear",
       size: "L",
       brand: "Uniqlo",
@@ -81,6 +87,7 @@ export default function BrowsePage() {
       image: "/placeholder.svg?height=300&width=300",
       condition: "Excellent",
       points: 130,
+      usdPrice: 65, // Added USD price
       category: "Tops",
       size: "M",
       brand: "H&M",
@@ -94,6 +101,7 @@ export default function BrowsePage() {
       image: "/placeholder.svg?height=300&width=300",
       condition: "Good",
       points: 140,
+      usdPrice: 70, // Added USD price
       category: "Shoes",
       size: "8",
       brand: "Dr. Martens",
@@ -219,6 +227,17 @@ export default function BrowsePage() {
                   </SelectContent>
                 </Select>
 
+                {/* New: Select for display mode */}
+                <Select value={displayMode} onValueChange={(value: "currency" | "points") => setDisplayMode(value)}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder="Display as" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="currency">Show Currency</SelectItem>
+                    <SelectItem value="points">Show Points</SelectItem>
+                  </SelectContent>
+                </Select>
+
                 <div className="flex items-center border rounded-lg">
                   <Button
                     variant={viewMode === "grid" ? "default" : "ghost"}
@@ -289,7 +308,10 @@ export default function BrowsePage() {
                           <div
                             className={`${viewMode === "list" ? "text-right ml-4" : "flex items-center justify-between"}`}
                           >
-                            <span className="font-semibold text-green-600 text-lg">{item.points} points</span>
+                            {/* Updated: Conditional price display */}
+                            <span className="font-semibold text-green-600 text-lg">
+                              {displayMode === "currency" ? `$${item.usdPrice}` : `${item.points} points`}
+                            </span>
                             {viewMode === "grid" && (
                               <Link href={`/item/${item.id}`}>
                                 <Button size="sm" className="bg-green-600 hover:bg-green-700">

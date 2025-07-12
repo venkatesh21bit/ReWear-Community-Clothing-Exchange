@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select" // Added Select import
 import { Heart, Share2, Star, MapPin, Calendar, ArrowUpDown, MessageCircle, Shield, Truck, Loader2 } from "lucide-react"
 
 export default function ItemDetailPage() {
@@ -25,7 +26,14 @@ export default function ItemDetailPage() {
   const [isLiked, setIsLiked] = useState(false)
   const [swapMessage, setSwapMessage] = useState("")
   const [isSendingSwapRequest, setIsSendingSwapRequest] = useState(false)
-  const [isRedeeming, setIsRedeeming] = useState(false)
+  // Renamed isRedeeming to isProcessingPurchase for broader use
+  const [isProcessingPurchase, setIsProcessingPurchase] = useState(false)
+  // New state for purchase mode (currency or points)
+  const [purchaseMode, setPurchaseMode] = useState<"currency" | "points">("currency")
+  // New state for purchase status message
+  const [purchaseStatus, setPurchaseStatus] = useState<{ type: "success" | "error"; message: string } | null>(null)
+  // New state for earned points
+  const [earnedPoints, setEarnedPoints] = useState<number | null>(null)
 
   const item = {
     id: 1,
@@ -39,7 +47,8 @@ export default function ItemDetailPage() {
       "/placeholder.svg?height=500&width=500",
     ],
     condition: "Excellent",
-    points: 150,
+    points: 150, // Points for redemption
+    usdPrice: 75, // New: Price in USD
     category: "Outerwear",
     size: "M",
     brand: "Levi's",
@@ -84,6 +93,8 @@ export default function ItemDetailPage() {
     },
   ]
 
+  const POINTS_PER_USD = 1 // Proportionality factor: 1 point per USD
+
   const handleSendSwapRequest = async () => {
     setIsSendingSwapRequest(true)
     console.log(`Sending swap request for item ${item.id} with message: "${swapMessage}"`)
@@ -95,13 +106,35 @@ export default function ItemDetailPage() {
     // Close dialog (assuming DialogClose is used in the button)
   }
 
-  const handleRedeemWithPoints = async () => {
-    setIsRedeeming(true)
-    console.log(`Attempting to redeem item ${item.id} for ${item.points} points.`)
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-    alert(`Successfully redeemed "${item.title}" for ${item.points} points!`)
-    setIsRedeeming(false)
+  // Combined purchase function for currency and points
+  const handlePurchase = async (mode: "currency" | "points") => {
+    setIsProcessingPurchase(true)
+    setPurchaseStatus(null) // Clear previous status
+    setEarnedPoints(null) // Clear previously earned points
+
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 1500)) // Simulate network delay
+
+      if (mode === "currency") {
+        const calculatedPointsEarned = item.usdPrice * POINTS_PER_USD
+        setEarnedPoints(calculatedPointsEarned) // Set points earned
+        setPurchaseStatus({
+          type: "success",
+          message: `Successfully purchased "${item.title}" for $${item.usdPrice}! You earned ${calculatedPointsEarned} points.`,
+        })
+      } else {
+        // mode === "points"
+        setPurchaseStatus({
+          type: "success",
+          message: `Successfully redeemed "${item.title}" for ${item.points} points!`,
+        })
+      }
+    } catch (error) {
+      console.error("Purchase error:", error)
+      setPurchaseStatus({ type: "error", message: "An unexpected error occurred during purchase." })
+    } finally {
+      setIsProcessingPurchase(false)
+    }
   }
 
   const handleMessageOwner = () => {
@@ -171,13 +204,36 @@ export default function ItemDetailPage() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 mb-6">
-                <span className="text-3xl font-bold text-green-600">{item.points} points</span>
+              {/* Updated: Conditional price display and mode selector */}
+              <div className="flex items-center gap-4 mb-6">
+                <span className="text-3xl font-bold text-green-600">
+                  {purchaseMode === "currency" ? `$${item.usdPrice}` : `${item.points} points`}
+                </span>
                 <Badge variant="outline" className="text-green-600 border-green-600">
                   {item.status}
                 </Badge>
+                <Select value={purchaseMode} onValueChange={(value: "currency" | "points") => setPurchaseMode(value)}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Select purchase mode" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="currency">Buy with Currency</SelectItem>
+                    <SelectItem value="points">Redeem with Points</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
+
+            {/* Purchase Status Message */}
+            {purchaseStatus && (
+              <div
+                className={`p-3 rounded-lg text-center text-sm mb-4 ${
+                  purchaseStatus.type === "success" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                }`}
+              >
+                {purchaseStatus.message}
+              </div>
+            )}
 
             {/* Item Specifications */}
             <Card>
@@ -219,6 +275,30 @@ export default function ItemDetailPage() {
 
             {/* Action Buttons */}
             <div className="space-y-3">
+              {/* Conditional purchase button */}
+              {purchaseMode === "currency" ? (
+                <Button
+                  className="w-full bg-green-600 hover:bg-green-700"
+                  size="lg"
+                  onClick={() => handlePurchase("currency")}
+                  disabled={isProcessingPurchase}
+                >
+                  {isProcessingPurchase && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {isProcessingPurchase ? "Processing..." : `Buy Now for $${item.usdPrice}`}
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  className="w-full bg-transparent"
+                  size="lg"
+                  onClick={() => handlePurchase("points")}
+                  disabled={isProcessingPurchase}
+                >
+                  {isProcessingPurchase && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {isProcessingPurchase ? "Redeeming..." : `Redeem with ${item.points} Points`}
+                </Button>
+              )}
+
               <Dialog>
                 <DialogTrigger asChild>
                   <Button className="w-full bg-green-600 hover:bg-green-700" size="lg">
@@ -260,17 +340,6 @@ export default function ItemDetailPage() {
                   </div>
                 </DialogContent>
               </Dialog>
-
-              <Button
-                variant="outline"
-                className="w-full bg-transparent"
-                size="lg"
-                onClick={handleRedeemWithPoints}
-                disabled={isRedeeming}
-              >
-                {isRedeeming && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isRedeeming ? "Redeeming..." : "Redeem with Points"}
-              </Button>
 
               <Button variant="ghost" className="w-full" size="lg" onClick={handleMessageOwner}>
                 <MessageCircle className="w-5 h-5 mr-2" />
