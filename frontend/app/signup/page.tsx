@@ -14,6 +14,7 @@ import { Recycle, Eye, EyeOff, Check } from "lucide-react"
 // Add import for useRouter and Loader2 icon
 import { useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
+import { signupUser } from "@/lib/auth-api"
 
 export default function SignupPage() {
   // Inside SignupPage component, add router instance and loading/status states
@@ -34,28 +35,30 @@ export default function SignupPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSigningUp(true)
-    setSignupStatus(null) // Clear previous status
+    setSignupStatus(null)
 
     console.log("Signup attempt:", formData)
 
     // Basic validation (can be expanded)
     if (formData.password !== formData.confirmPassword) {
-      setSignupStatus({ type: "error", message: "Passwords do not match." })
+      setSignupStatus({ type: "error", message: "Passwords do not match" })
       setIsSigningUp(false)
       return
     }
     if (!formData.firstName || !formData.lastName || !formData.email || !formData.password) {
-      setSignupStatus({ type: "error", message: "Please fill in all required fields." })
+      setSignupStatus({ type: "error", message: "All fields are required" })
       setIsSigningUp(false)
       return
     }
 
-    // Simulate API call
     try {
-      await new Promise((resolve) => setTimeout(resolve, 2000)) // Simulate network delay
-
-      // Simulate successful signup
-      setSignupStatus({ type: "success", message: "Account created successfully! Redirecting to login..." })
+      await signupUser({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        password: formData.password,
+      })
+      setSignupStatus({ type: "success", message: "Signup successful! Redirecting to login..." })
       // Clear form after successful submission
       setFormData({
         firstName: "",
@@ -67,9 +70,8 @@ export default function SignupPage() {
       setTimeout(() => {
         router.push("/login") // Redirect to login page after signup
       }, 1000)
-    } catch (error) {
-      console.error("Signup error:", error)
-      setSignupStatus({ type: "error", message: "An unexpected error occurred during signup." })
+    } catch (error: any) {
+      setSignupStatus({ type: "error", message: error.message || "Signup failed" })
     } finally {
       setIsSigningUp(false)
     }

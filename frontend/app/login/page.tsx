@@ -13,6 +13,7 @@ import { Recycle, Eye, EyeOff } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
 import { useAuth } from "@/contexts/auth-context"
+import { loginUser } from "@/lib/auth-api"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -31,29 +32,16 @@ export default function LoginPage() {
     console.log("Login attempt:", { email, password })
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      const user = await loginUser(email, password)
+      setLoginStatus({ type: "success", message: "Login successful!" })
 
-      if (email && password) {
-        // Simulate successful login with mock user data
-        const userData = {
-          id: "1",
-          name: "John Doe",
-          email: email,
-          points: 1250,
-        }
+      login(user) // Update auth context
 
-        login(userData) // Update auth context
-        setLoginStatus({ type: "success", message: "Login successful! Redirecting..." })
-
-        setTimeout(() => {
-          router.push("/") // Redirect to home page to see logged-in state
-        }, 500)
-      } else {
-        setLoginStatus({ type: "error", message: "Please enter both email and password." })
-      }
-    } catch (error) {
-      console.error("Login error:", error)
-      setLoginStatus({ type: "error", message: "An unexpected error occurred during login." })
+      setTimeout(() => {
+        router.push("/") // Redirect to home page to see logged-in state
+      }, 500)
+    } catch (error: any) {
+      setLoginStatus({ type: "error", message: error.message || "Login failed" })
     } finally {
       setIsLoggingIn(false)
     }
