@@ -19,9 +19,15 @@ def api_root(request):
             'api': '/api/ (API Endpoints)',
         },
         'admin_credentials': {
-            'username': 'admin',
-            'password': 'admin123',
-            'note': 'Default admin credentials for demo'
+            'option_1': {
+                'username': 'admin',
+                'password': 'admin123'
+            },
+            'option_2': {
+                'username': 'venkatesh', 
+                'password': 'venkat*2005'
+            },
+            'note': 'Both accounts have superuser and staff privileges'
         },
         'status': 'operational'
     }, status=status.HTTP_200_OK)

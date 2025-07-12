@@ -20,11 +20,20 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
 from django.contrib.auth import get_user_model
 User = get_user_model()
-if not User.objects.filter(is_superuser=True).exists():
+
+# Create admin superuser
+if not User.objects.filter(username='admin').exists():
     User.objects.create_superuser('admin', 'admin@rewear.com', 'admin123')
-    print('✅ Superuser created')
-else:
-    print('ℹ️ Superuser already exists')
+    print('✅ Admin superuser created: admin/admin123')
+
+# Create venkatesh superuser  
+if not User.objects.filter(username='venkatesh').exists():
+    User.objects.create_superuser('venkatesh', 'venkatesh@rewear.com', 'venkat*2005')
+    print('✅ Venkatesh superuser created: venkatesh/venkat*2005')
+
+# Display all superusers
+superusers = User.objects.filter(is_superuser=True)
+print(f'📋 Available superusers: {[user.username for user in superusers]}')
 "
 
 echo "🚀 Starting gunicorn server..."
