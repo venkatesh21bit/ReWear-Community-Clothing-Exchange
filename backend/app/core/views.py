@@ -209,51 +209,68 @@ class ItemListCreateView(APIView):
     permission_classes = [IsAuthenticated]
     
     def get(self, request):
-        queryset = Item.objects.filter(status='available').select_related('uploader').prefetch_related('images')
-        
-        # Apply filters
-        category = request.query_params.get('category')
-        if category:
-            queryset = queryset.filter(category=category)
-        
-        size = request.query_params.get('size')
-        if size:
-            queryset = queryset.filter(size=size)
-        
-        condition = request.query_params.get('condition')
-        if condition:
-            queryset = queryset.filter(condition=condition)
-        
-        min_points = request.query_params.get('min_points')
-        if min_points:
-            queryset = queryset.filter(points_value__gte=min_points)
-        
-        max_points = request.query_params.get('max_points')
-        if max_points:
-            queryset = queryset.filter(points_value__lte=max_points)
-        
-        search = request.query_params.get('search')
-        if search:
-            queryset = queryset.filter(
-                Q(title__icontains=search) |
-                Q(description__icontains=search) |
-                Q(brand__icontains=search) |
-                Q(tags__icontains=search)
-            )
-        
-        # Exclude user's own items
-        queryset = queryset.exclude(uploader=request.user)
-        
-        # Order by newest first
-        queryset = queryset.order_by('-created_at')
-        
-        serializer = ItemListSerializer(queryset, many=True, context={'request': request})
-        
-        return Response({
-            'success': True,
-            'count': queryset.count(),
-            'results': serializer.data
-        }, status=status.HTTP_200_OK)
+        try:
+            queryset = Item.objects.filter(status='available').select_related('uploader').prefetch_related('images')
+            
+            # Apply filters
+            category = request.query_params.get('category')
+            if category:
+                queryset = queryset.filter(category=category)
+            
+            size = request.query_params.get('size')
+            if size:
+                queryset = queryset.filter(size=size)
+            
+            condition = request.query_params.get('condition')
+            if condition:
+                queryset = queryset.filter(condition=condition)
+            
+            min_points = request.query_params.get('min_points')
+            if min_points:
+                queryset = queryset.filter(points_value__gte=min_points)
+            
+            max_points = request.query_params.get('max_points')
+            if max_points:
+                queryset = queryset.filter(points_value__lte=max_points)
+            
+            search = request.query_params.get('search')
+            if search:
+                queryset = queryset.filter(
+                    Q(title__icontains=search) |
+                    Q(description__icontains=search) |
+                    Q(brand__icontains=search) |
+                    Q(tags__icontains=search)
+                )
+            
+            # Exclude user's own items
+            queryset = queryset.exclude(uploader=request.user)
+            
+            # Order by newest first
+            queryset = queryset.order_by('-created_at')
+            
+            serializer = ItemListSerializer(queryset, many=True, context={'request': request})
+            
+            return Response({
+                'success': True,
+                'count': queryset.count(),
+                'results': serializer.data
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            # Add detailed error logging
+            import traceback
+            error_details = {
+                'error': str(e),
+                'traceback': traceback.format_exc(),
+                'user_id': request.user.id if request.user else None
+            }
+            print(f"Error in ItemListCreateView.get: {error_details}")
+            
+            return Response({
+                'success': False,
+                'message': 'Failed to fetch items',
+                'error': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     def post(self, request):
         serializer = ItemCreateSerializer(data=request.data)
@@ -677,3 +694,63 @@ class ImageUploadView(APIView):
             'message': 'Failed to upload images',
             'errors': serializer.errors
         }, status=status.HTTP_400_BAD_REQUEST)
+
+
+# ===============================
+# Debug View (Temporary)
+# ===============================
+
+class ItemDebugView(APIView):
+    """
+    Temporary debug view to isolate the 500 error
+    """
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        try:
+            # Test basic Item query
+            items_count = Item.objects.count()
+            available_items_count = Item.objects.filter(status='available').count()
+            
+            # Test if there are any items at all
+            if items_count == 0:
+                return Response({
+                    'debug': 'No items in database',
+                    'items_count': items_count
+                })
+            
+            # Test basic queryset without relationships
+            basic_queryset = Item.objects.filter(status='available')[:5]
+            basic_items = list(basic_queryset.values('item_id', 'title', 'status'))
+            
+            # Test with uploader relationship
+            try:
+                with_uploader = Item.objects.filter(status='available').select_related('uploader')[:1]
+                uploader_test = list(with_uploader.values('item_id', 'title', 'uploader__email'))
+            except Exception as e:
+                uploader_test = f"Error with uploader: {str(e)}"
+            
+            # Test with images relationship
+            try:
+                with_images = Item.objects.filter(status='available').prefetch_related('images')[:1]
+                images_test = "Images relationship works"
+            except Exception as e:
+                images_test = f"Error with images: {str(e)}"
+            
+            return Response({
+                'debug_info': {
+                    'total_items': items_count,
+                    'available_items': available_items_count,
+                    'basic_items': basic_items,
+                    'uploader_test': uploader_test,
+                    'images_test': images_test,
+                    'user_id': request.user.id
+                }
+            })
+            
+        except Exception as e:
+            import traceback
+            return Response({
+                'debug_error': str(e),
+                'traceback': traceback.format_exc()
+            }, status=500)
