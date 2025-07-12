@@ -202,7 +202,6 @@ class ItemDetailSerializer(serializers.ModelSerializer):
 
 class UserItemsSerializer(serializers.ModelSerializer):
     """Serializer for user's own items (My Items)"""
-    images = ItemImageSerializer(many=True, read_only=True)
     primary_image = serializers.SerializerMethodField()
     likes_count = serializers.SerializerMethodField()
     views_count = serializers.SerializerMethodField()
@@ -210,20 +209,29 @@ class UserItemsSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Item
-        fields = (
+        fields = [
             'item_id', 'title', 'primary_image', 'status', 'views_count',
             'likes_count', 'messages_count', 'created_at', 'points_value',
-            'condition'
-        )
+            'condition', 'category', 'type', 'size', 'brand', 'color'
+        ]
     
     def get_primary_image(self, obj):
-        primary_image = obj.images.filter(is_primary=True).first()
-        if primary_image:
-            request = self.context.get('request')
-            if request:
-                return request.build_absolute_uri(primary_image.image.url)
-            return primary_image.image.url
-        return None
+        try:
+            primary_image = obj.images.filter(is_primary=True).first()
+            if primary_image and primary_image.image:
+                request = self.context.get('request')
+                if request:
+                    url = request.build_absolute_uri(primary_image.image.url)
+                    # Handle long URLs gracefully
+                    if len(url) > 500:
+                        print(f"Warning: Primary image URL too long for item {obj.item_id}: {len(url)} chars")
+                        return url[:500] + "..."
+                    return url
+                return primary_image.image.url
+            return None
+        except Exception as e:
+            print(f"Error getting primary image for item {obj.item_id}: {str(e)}")
+            return None
     
     def get_likes_count(self, obj):
         # TODO: Implement likes functionality
