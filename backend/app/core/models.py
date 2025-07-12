@@ -160,7 +160,7 @@ class ItemImage(models.Model):
     """
     image_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     item = models.ForeignKey(Item, on_delete=models.CASCADE, related_name='images')
-    image = models.ImageField(upload_to='item_images/')
+    image = models.ImageField(upload_to='item_images/', max_length=500)
     is_primary = models.BooleanField(default=False)
     alt_text = models.CharField(max_length=200, blank=True)
     
