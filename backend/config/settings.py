@@ -145,7 +145,7 @@ STATIC_URL = '/static/'
 # Railway deployment static files configuration
 if os.environ.get('RAILWAY_ENVIRONMENT'):
     # Railway collects static files to /app/static
-    STATIC_ROOT = '/app/static'
+    STATIC_ROOT = '/static'
 else:
     # Local development
     STATIC_ROOT = BASE_DIR / 'static'
