@@ -16,7 +16,9 @@ class Command(BaseCommand):
             User.objects.create_superuser(
                 username='venkatesh',
                 email='venkatesh@rewear.com', 
-                password='venkat*2005'
+                password='venkat*2005',
+                first_name='Venkatesh',
+                last_name='User'
             )
             self.stdout.write(
                 self.style.SUCCESS('✅ Successfully created venkatesh superuser')

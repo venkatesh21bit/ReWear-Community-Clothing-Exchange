@@ -1,6 +1,38 @@
-# Django Backend - Odoo Hackathon
+# ReWear Backend API
 
-This is the Django backend for the Odoo Hackathon project with PostgreSQL database.
+Django REST API for the ReWear clothing exchange platform (Odoo Hackathon project).
+
+## Features
+
+- Custom User authentication with JWT tokens
+- Item listing and management system
+- Transaction system for swaps/exchanges
+- User rating system
+- Points-based exchange system
+- Comprehensive admin interface
+
+## Models Overview
+
+### User
+- Custom user model extending Django's AbstractUser
+- Additional fields: points_balance, bio, location, avatar, swap statistics
+- Role-based permissions (user/admin)
+
+### Item
+- Clothing items with categories, sizes, conditions
+- Multiple image support with primary image designation
+- Status tracking (available, pending, swapped, etc.)
+- Points-based valuation system
+
+### Transaction
+- Handles swaps, points exchanges, and donations
+- Status tracking (pending, accepted, completed, cancelled, disputed)
+- Links users and items with detailed transaction history
+
+### Rating
+- User rating system tied to transactions
+- 1-5 star rating with optional comments
+- Prevents duplicate ratings per transaction
 
 ## Prerequisites
 
@@ -105,34 +137,62 @@ backend/
 
 To create a new Django app:
 
-```bash
-cd apps
-python ../manage.py startapp your_app_name
-```
+## API Endpoints
 
-Then add the app to `INSTALLED_APPS` in `config/settings.py` and include its URLs in `apps/urls.py`.
+### Authentication
+- `POST /api/auth/register/` - User registration
+- `POST /api/auth/login/` - User login  
+- `POST /api/auth/token/refresh/` - Refresh JWT token
+- `GET /api/auth/profile/` - Current user profile
+- `PUT /api/auth/profile/` - Update user profile
+- `GET /api/auth/users/{id}/` - Public user profile
+
+### Items (Coming Soon)
+- Item CRUD operations
+- Image upload and management
+- Search and filtering
+
+### Transactions (Coming Soon)
+- Create and manage transactions
+- Status updates and tracking
 
 ## Environment Variables
 
-Key environment variables in `.env`:
+Current environment variables in `.env`:
 
 - `SECRET_KEY`: Django secret key
 - `DEBUG`: Debug mode (True/False)
-- `DB_NAME`: PostgreSQL database name
+- `DB_NAME`: PostgreSQL database name (rewear_db)
 - `DB_USER`: PostgreSQL username
 - `DB_PASSWORD`: PostgreSQL password
 - `DB_HOST`: PostgreSQL host
 - `DB_PORT`: PostgreSQL port
 - `ALLOWED_HOSTS`: Comma-separated allowed hosts
-- `CORS_ALLOWED_ORIGINS`: Comma-separated CORS allowed origins
+- `CORS_ALLOWED_ORIGINS`: CORS allowed origins
 
-## API Documentation
+## Database Models
 
-Once you create apps and views, the API endpoints will be available under `/api/`.
+The application includes complete models for:
+- Users with platform-specific fields
+- Items with images and categories
+- Transactions for swaps and exchanges
+- Ratings tied to transactions
 
-## Next Steps
+## Admin Interface
 
-1. Create your Django apps in the `apps/` directory
-2. Define your models, views, and serializers
-3. Add URL patterns for your apps
-4. Test your API endpoints
+Access the Django admin at `/admin/` with superuser credentials to manage all models.
+
+## JWT Authentication
+
+- Access tokens expire in 1 hour
+- Refresh tokens expire in 7 days
+- Include access token in Authorization header: `Bearer <token>`
+
+## Current Status
+
+✅ Models created and migrated
+✅ Authentication API implemented
+✅ Admin interface configured
+✅ JWT token system working
+🔄 Database setup needed
+🔄 Item and Transaction APIs pending

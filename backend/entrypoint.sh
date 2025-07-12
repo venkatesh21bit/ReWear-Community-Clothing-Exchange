@@ -18,17 +18,28 @@ import os
 import django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
-from django.contrib.auth import get_user_model
-User = get_user_model()
+from app.core.models import User
 
 # Create admin superuser
 if not User.objects.filter(username='admin').exists():
-    User.objects.create_superuser('admin', 'admin@rewear.com', 'admin123')
+    User.objects.create_superuser(
+        username='admin',
+        email='admin@rewear.com', 
+        password='admin123',
+        first_name='Admin',
+        last_name='User'
+    )
     print('✅ Admin superuser created: admin/admin123')
 
 # Create venkatesh superuser  
 if not User.objects.filter(username='venkatesh').exists():
-    User.objects.create_superuser('venkatesh', 'venkatesh@rewear.com', 'venkat*2005')
+    User.objects.create_superuser(
+        username='venkatesh',
+        email='venkatesh@rewear.com', 
+        password='venkat*2005',
+        first_name='Venkatesh',
+        last_name='User'
+    )
     print('✅ Venkatesh superuser created: venkatesh/venkat*2005')
 
 # Display all superusers

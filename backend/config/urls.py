@@ -27,7 +27,7 @@ def root_redirect(request):
 urlpatterns = [
     path('', root_redirect, name='root'),
     path('admin/', admin.site.urls),
-    path('api/', include('apps.urls')),  # Include app URLs
+    path('api/', include('app.urls')),  # Include app URLs
 ]
 
 # Serve media files during development
