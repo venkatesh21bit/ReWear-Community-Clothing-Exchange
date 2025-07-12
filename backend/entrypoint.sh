@@ -69,68 +69,53 @@ print(f'Total users in database: {all_users.count()}')
 for user in all_users:
     print(f'  - {user.username} | {user.email} | staff: {user.is_staff} | superuser: {user.is_superuser}')
 
-# Create admin superuser
-admin_email = 'admin@rewear.com'
-if not User.objects.filter(email=admin_email).exists():
+# Remove venkatesh user if it exists
+try:
+    venkatesh_user = User.objects.get(username='venkatesh')
+    venkatesh_user.delete()
+    print('🗑️ Removed venkatesh user')
+except User.DoesNotExist:
+    print('ℹ️ No venkatesh user to remove')
+
+# Update existing users instead of creating new ones
+print('🔧 Ensuring admin privileges for admin user...')
+
+# Handle admin user only
+try:
+    admin_user = User.objects.get(username='admin')
+    admin_user.is_staff = True
+    admin_user.is_superuser = True
+    if admin_user.email != 'admin@rewear.com':
+        print(f'📧 Updating admin email from {admin_user.email} to admin@rewear.com')
+        admin_user.email = 'admin@rewear.com'
+    admin_user.set_password('admin123')  # Ensure password is correct
+    admin_user.save()
+    print(f'✅ Admin user updated: {admin_user.email} / admin123')
+except User.DoesNotExist:
     admin_user = User.objects.create_superuser(
         username='admin',
-        email=admin_email, 
+        email='admin@rewear.com', 
         password='admin123',
         first_name='Admin',
         last_name='User'
     )
-    admin_user.is_staff = True
-    admin_user.is_superuser = True
-    admin_user.save()
-    print(f'✅ Admin superuser created: {admin_email} / admin123')
-else:
-    admin_user = User.objects.get(email=admin_email)
-    admin_user.is_staff = True
-    admin_user.is_superuser = True
-    admin_user.save()
-    print(f'✅ Admin user already exists: {admin_email}')
+    print(f'✅ Admin superuser created: admin@rewear.com / admin123')
 
-# Create venkatesh superuser  
-venkatesh_email = 'venkatesh.k21062005@gmail.com'
-if not User.objects.filter(email=venkatesh_email).exists():
-    venkatesh_user = User.objects.create_superuser(
-        username='venkatesh',
-        email=venkatesh_email, 
-        password='venkat*2005',
-        first_name='Venkatesh',
-        last_name='User'
-    )
-    venkatesh_user.is_staff = True
-    venkatesh_user.is_superuser = True
-    venkatesh_user.save()
-    print(f'✅ Venkatesh superuser created: {venkatesh_email} / venkat*2005')
-else:
-    venkatesh_user = User.objects.get(email=venkatesh_email)
-    venkatesh_user.is_staff = True
-    venkatesh_user.is_superuser = True
-    venkatesh_user.save()
-    print(f'✅ Venkatesh user already exists: {venkatesh_email}')
+# Final verification
+print('🔍 Final user verification...')
+all_users = User.objects.all()
+for user in all_users:
+    print(f'  - {user.username} | {user.email} | staff: {user.is_staff} | superuser: {user.is_superuser}')
 
-# Verify superusers
-superusers = User.objects.filter(is_superuser=True)
-print(f'📋 Available superusers: {[f\"{user.email}({user.username})\" for user in superusers]}')
-
-# Test password verification
-print('🔐 Testing password verification...')
-for email in [admin_email, venkatesh_email]:
-    try:
-        user = User.objects.get(email=email)
-        password = 'admin123' if 'admin' in email else 'venkat*2005'
-        if user.check_password(password):
-            print(f'✅ Password verification SUCCESS for {email}')
-        else:
-            print(f'❌ Password verification FAILED for {email}')
-            # Reset password
-            user.set_password(password)
-            user.save()
-            print(f'🔄 Password reset for {email}')
-    except User.DoesNotExist:
-        print(f'❌ User not found: {email}')
+print('🔐 Testing admin password verification...')
+try:
+    user = User.objects.get(email='admin@rewear.com')
+    if user.check_password('admin123'):
+        print(f'✅ Login should work: admin@rewear.com / admin123')
+    else:
+        print(f'❌ Password verification failed for admin@rewear.com')
+except User.DoesNotExist:
+    print(f'❌ Admin user not found')
 "
 
 echo "🚀 Starting gunicorn server..."
