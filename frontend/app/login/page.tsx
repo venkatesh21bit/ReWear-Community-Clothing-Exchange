@@ -11,15 +11,46 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator"
 import { Recycle, Eye, EyeOff } from "lucide-react"
 
+// Add import for useRouter and Loader2 icon
+import { useRouter } from "next/navigation"
+import { Loader2 } from "lucide-react"
+
 export default function LoginPage() {
+  // Inside LoginPage component, add router instance and loading/status states
+  const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [isLoggingIn, setIsLoggingIn] = useState(false)
+  const [loginStatus, setLoginStatus] = useState<{ type: "success" | "error"; message: string } | null>(null)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Update handleSubmit function
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Handle login logic here
+    setIsLoggingIn(true)
+    setLoginStatus(null) // Clear previous status
+
     console.log("Login attempt:", { email, password })
+
+    // Simulate API call
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 1500)) // Simulate network delay
+
+      // Simulate successful login for any input for now
+      if (email && password) {
+        setLoginStatus({ type: "success", message: "Login successful! Redirecting..." })
+        setTimeout(() => {
+          router.push("/dashboard") // Redirect to dashboard on success
+        }, 500)
+      } else {
+        setLoginStatus({ type: "error", message: "Please enter both email and password." })
+      }
+    } catch (error) {
+      console.error("Login error:", error)
+      setLoginStatus({ type: "error", message: "An unexpected error occurred during login." })
+    } finally {
+      setIsLoggingIn(false)
+    }
   }
 
   return (
@@ -41,6 +72,15 @@ export default function LoginPage() {
             <CardDescription>Sign in to your account to continue swapping</CardDescription>
           </CardHeader>
           <CardContent>
+            {loginStatus && (
+              <div
+                className={`p-3 rounded-lg text-center text-sm mb-4 ${
+                  loginStatus.type === "success" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                }`}
+              >
+                {loginStatus.message}
+              </div>
+            )}
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
@@ -96,8 +136,9 @@ export default function LoginPage() {
                 </Link>
               </div>
 
-              <Button type="submit" className="w-full bg-green-600 hover:bg-green-700">
-                Sign In
+              <Button type="submit" className="w-full bg-green-600 hover:bg-green-700" disabled={isLoggingIn}>
+                {isLoggingIn && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isLoggingIn ? "Signing In..." : "Sign In"}
               </Button>
             </form>
 

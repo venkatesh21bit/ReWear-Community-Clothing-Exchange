@@ -11,7 +11,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator"
 import { Recycle, Eye, EyeOff, Check } from "lucide-react"
 
+// Add import for useRouter and Loader2 icon
+import { useRouter } from "next/navigation"
+import { Loader2 } from "lucide-react"
+
 export default function SignupPage() {
+  // Inside SignupPage component, add router instance and loading/status states
+  const router = useRouter()
+  const [isSigningUp, setIsSigningUp] = useState(false)
+  const [signupStatus, setSignupStatus] = useState<{ type: "success" | "error"; message: string } | null>(null)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [formData, setFormData] = useState({
@@ -22,10 +30,49 @@ export default function SignupPage() {
     confirmPassword: "",
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Update handleSubmit function
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Handle signup logic here
+    setIsSigningUp(true)
+    setSignupStatus(null) // Clear previous status
+
     console.log("Signup attempt:", formData)
+
+    // Basic validation (can be expanded)
+    if (formData.password !== formData.confirmPassword) {
+      setSignupStatus({ type: "error", message: "Passwords do not match." })
+      setIsSigningUp(false)
+      return
+    }
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.password) {
+      setSignupStatus({ type: "error", message: "Please fill in all required fields." })
+      setIsSigningUp(false)
+      return
+    }
+
+    // Simulate API call
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 2000)) // Simulate network delay
+
+      // Simulate successful signup
+      setSignupStatus({ type: "success", message: "Account created successfully! Redirecting to login..." })
+      // Clear form after successful submission
+      setFormData({
+        firstName: "",
+        lastName: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
+      })
+      setTimeout(() => {
+        router.push("/login") // Redirect to login page after signup
+      }, 1000)
+    } catch (error) {
+      console.error("Signup error:", error)
+      setSignupStatus({ type: "error", message: "An unexpected error occurred during signup." })
+    } finally {
+      setIsSigningUp(false)
+    }
   }
 
   const handleInputChange = (field: string, value: string) => {
@@ -51,6 +98,15 @@ export default function SignupPage() {
             <CardDescription>Create your account and start your sustainable fashion journey</CardDescription>
           </CardHeader>
           <CardContent>
+            {signupStatus && (
+              <div
+                className={`p-3 rounded-lg text-center text-sm mb-4 ${
+                  signupStatus.type === "success" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                }`}
+              >
+                {signupStatus.message}
+              </div>
+            )}
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -172,8 +228,9 @@ export default function SignupPage() {
                 </Label>
               </div>
 
-              <Button type="submit" className="w-full bg-green-600 hover:bg-green-700">
-                Create Account
+              <Button type="submit" className="w-full bg-green-600 hover:bg-green-700" disabled={isSigningUp}>
+                {isSigningUp && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isSigningUp ? "Creating Account..." : "Create Account"}
               </Button>
             </form>
 
